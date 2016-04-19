@@ -510,10 +510,10 @@ local instructions = {
     local param = AdvanceCpu()
     if reg.interruptHandling then
       if not (param >= 0x40 and param <= 0x7F) then
-  InvalidInstruction(); return
+        InvalidInstruction(); return
       end
       if reg.interruptLevel == 0 then
-  reg.interruptLevel = 1
+        reg.interruptLevel = 1
       end
       reg.AH_ = math.floor(reg.IP/256)
       reg.AL_ = reg.IP%256
