@@ -4,15 +4,15 @@ print = function () end
 unpack = table.unpack
 
 function table.maxn(t)
-	local currentMax = 0
-	for k, v in pairs(t) do
-		if type(k) == "number" and k%1 == 0 then
-			if k > currentMax then
-				currentMax = k
-			end
-		end
-	end
-	return currentMax
+  local currentMax = 0
+  for k, v in pairs(t) do
+    if type(k) == "number" and k%1 == 0 then
+      if k > currentMax then
+        currentMax = k
+      end
+    end
+  end
+  return currentMax
 end
 
 local C_SourceFile = require("SourceFile")

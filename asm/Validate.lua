@@ -5,12 +5,12 @@ local function Validate(obj, validationTable)
   for k, v in pairs(validationTable) do
     if type(v) == "table" then
       if type(obj[k]) ~= "table" then
-				error("Failed validation, expected field "..tostring(k).." to be table.")
+        error("Failed validation, expected field "..tostring(k).." to be table.")
       end
       Validate(obj[k], v)
     else
       if type(obj[k]) ~= v then
-				error("Failed validation, " .. tostring(k) .. " field should be " .. v .. " type.")
+        error("Failed validation, " .. tostring(k) .. " field should be " .. v .. " type.")
       end
     end
   end

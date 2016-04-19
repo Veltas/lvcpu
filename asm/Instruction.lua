@@ -97,7 +97,7 @@ local function NumToNBit(num, n)
   end
   if not (num >= 0 and num < max) then
     return nil
-	end
+  end
   return num
 end
 
@@ -129,35 +129,35 @@ local codeGenerators = {
     local reg1 = WordToReg(p1) or error("Expected p1 of ADD to be register")
     if regNamesG8[reg1] then
       if regNamesG8[p2] then
-				return {0x01, 16*regNamesG8[reg1]+regNamesG8[p2]}
+        return {0x01, 16*regNamesG8[reg1]+regNamesG8[p2]}
       else
-				local num = WordToNum(p2)
-				local char = WordToChar(p2)
-				if not num and not char then
-					error("Expected g8 register or number for p2 in ADD")
-				end
-				if char then
-					num = char:byte()
-				end
-				num = NumToNBit(tonumber(num), 8) or error("p2 in ADD was not an 8-bit value")
-				return {0xE0+regNamesG8[reg1], num}
+        local num = WordToNum(p2)
+        local char = WordToChar(p2)
+        if not num and not char then
+          error("Expected g8 register or number for p2 in ADD")
+        end
+        if char then
+          num = char:byte()
+        end
+        num = NumToNBit(tonumber(num), 8) or error("p2 in ADD was not an 8-bit value")
+        return {0xE0+regNamesG8[reg1], num}
       end
     elseif regNamesR16[reg1] then
       if regNamesR16[p2] then
-				return {0x02, 16*regNamesR16[reg1]+regNamesR16[p2]}
+        return {0x02, 16*regNamesR16[reg1]+regNamesR16[p2]}
       else
-				local num, char, label = WordToNum(p2), WordToChar(p2), WordToLabel(p2)
-				if char then
-					return {0xF0+regNamesR16[reg1], NumToNBit(char:byte(), 8), 0}
-				elseif label then
-					references[self] = label
-					return {0xF0+regNamesR16[reg1], true, true}
-				elseif num then
-					num = NumToNBit(tonumber(num), 16)
-					return {0xF0+regNamesR16[reg1], num%256, math.floor(num/256)}
-				else
-					error("Expected r16 register, number or label for p2 in ADD")
-				end
+        local num, char, label = WordToNum(p2), WordToChar(p2), WordToLabel(p2)
+        if char then
+          return {0xF0+regNamesR16[reg1], NumToNBit(char:byte(), 8), 0}
+        elseif label then
+          references[self] = label
+          return {0xF0+regNamesR16[reg1], true, true}
+        elseif num then
+          num = NumToNBit(tonumber(num), 16)
+          return {0xF0+regNamesR16[reg1], num%256, math.floor(num/256)}
+        else
+          error("Expected r16 register, number or label for p2 in ADD")
+        end
       end
     else
       error("ADD p1 must be g8 or r16 register")
@@ -167,12 +167,12 @@ local codeGenerators = {
     local reg1 = WordToReg(p1) or error("Expected p1 of SUB to be register")
     if regNamesG8[reg1] then
       if not regNamesG8[p2] then
-				error("Expected p2 of SUB to be g8 register as well")
+        error("Expected p2 of SUB to be g8 register as well")
       end
       return {0x03, 16*regNamesG8[reg1]+regNamesG8[p2]}
     elseif regNamesR16[reg1] then
       if not regNamesR16[p2] then
-				error("Expected p2 of SUB to be r16 register as well")
+        error("Expected p2 of SUB to be r16 register as well")
       end
       return {0x04, 16*regNamesR16[reg1]+regNamesR16[p2]}
     else
@@ -205,7 +205,7 @@ local codeGenerators = {
     local reg1 = WordToReg(p1) or error("Expected register for p1 of AND")
     if regNamesG8[reg1] then
       if regNamesG8[p2] then
-				return {0x08, 16*regNamesG8[reg1]+regNamesG8[p2]}
+        return {0x08, 16*regNamesG8[reg1]+regNamesG8[p2]}
       end
     end
     error("AND takes g8 registers")
@@ -214,7 +214,7 @@ local codeGenerators = {
     local reg1 = WordToReg(p1) or error("Expected register for p1 of OR")
     if regNamesG8[reg1] then
       if regNamesG8[p2] then
-				return {0x09, 16*regNamesG8[reg1]+regNamesG8[p2]}
+        return {0x09, 16*regNamesG8[reg1]+regNamesG8[p2]}
       end
     end
     error("OR takes g8 registers")
@@ -223,7 +223,7 @@ local codeGenerators = {
     local reg1 = WordToReg(p1) or error("Expected register for p1 of XOR")
     if regNamesG8[reg1] then
       if regNamesG8[p2] then
-				return {0x0A, 16*regNamesG8[reg1]+regNamesG8[p2]}
+        return {0x0A, 16*regNamesG8[reg1]+regNamesG8[p2]}
       end
     end
     error("XOR takes g8 registers")
@@ -250,237 +250,237 @@ local codeGenerators = {
     local reg1 = WordToReg(p1) or error("Expected register for p1 of XOR")
     if regNamesG8[reg1] then
       if regNamesG8[p2] then
-				return {0x0D, 16*regNamesG8[reg1]+regNamesG8[p2]}
+        return {0x0D, 16*regNamesG8[reg1]+regNamesG8[p2]}
       end
     elseif reg1 == "A" then
-   		if regNamesG8[p2] then
-				return {0x0D, 16*4+regNamesG8[p2]}
-			end
-		end
+       if regNamesG8[p2] then
+        return {0x0D, 16*4+regNamesG8[p2]}
+      end
+    end
     error("MUL p1 should be A or a g8 register")
   end,
   MOV = function (self, references, p1, p2)
-		local reg1 = WordToReg(p1)
-		if reg1 then
-			if regNamesG8[reg1] then
-				if regNamesG8[p2] then
-					return {0x20, 16*regNamesG8[reg1]+regNamesG8[p2]}
-				elseif WordToNum(p2) then
-					local num = WordToNum(p2)
-					num = NumToNBit(tonumber(num), 8) or error("MOV to g8 register takes 8-bit literal")
-					return {0x80+regNamesG8[reg1], num}
-				elseif WordToChar(p2) then
-					local char = WordToChar(p2)
-					return {0x80+regNamesG8[reg1], NumToNBit(char:byte(), 8)}
-				elseif reg1 == "AL" then
-					if p2 == "F" then
-						return {0x22, 0x01}
-					elseif p2 == "IC" then
-						return {0x22, 0x02}
-					elseif p2 == "T" then
-						return {0x2B}
-					end
-					local bpoffset = p2:match("^%[BP([%+%-]%d+)%]$")
-					if bpoffset then
-						bpoffset = NumToNBit(tonumber(bpoffset), 8) or error("MOV BP offsets should be 8-bit signed values")
-						return {0x23, bpoffset}
-					elseif p2:find("^%[BP%]$") then
-						return {0x23, 0}
-					elseif p2:find("^%[C%]$") then
-						return {0x24}
-					end
-				end
-			elseif reg1 == "T" then
-				if p2 == "AL" then
-					return {0x2C}
-				end
-			elseif regNamesR16[reg1] then
-				if regNamesR16[p2] then
-					return {0x21, 16*regNamesR16[reg1]+regNamesR16[p2]}
-				elseif WordToNum(p2) then
-					local num = WordToNum(p2)
-					num = NumToNBit(tonumber(num), 16) or error("MOV to r16 register takes 16-bit literal")
-					return {0x90+regNamesR16[reg1], num%256, math.floor(num/256)}
-				elseif WordToLabel(p2) then
-					local label = WordToLabel(p2)
-					references[self] = label
-					return {0x90+regNamesR16[reg1], true, true}
-				elseif WordToChar(p2) then
-					local char = WordToChar(p2)
-					return {0x90+regNamesR16[reg1], NumToNBit(char:byte(), 8), 0}
-				elseif reg1 == "A" then
-					if p2 == "IP" then
-						return {0x22, 0x03}
-					end
-				end
-			end
-		elseif p1:find("^%[BP[%+%-]?%d*%]$") then
-			local bpoffset = p1:match("^%[BP([%+%-]%d+)%]$")
-			if bpoffset then
-				if p2 == "AL" then
-					bpoffset = WordToNum(bpoffset) or error("MOV to BP offset takes 8-bit offset: a number")
-					bpoffset = NumToNBit(tonumber(bpoffset), 8) or error("MOV to BP offset requires 8-bit offset")
-					return {0x25, bpoffset}
-				end
-			elseif p1:find("^%[BP%]$") then
-				return {0x25, 0}
-			end
-		elseif p1:find("^%[C%]$") then
-			return {0x26}
-		end
-		error("Malformed MOV statement")
-	end,
+    local reg1 = WordToReg(p1)
+    if reg1 then
+      if regNamesG8[reg1] then
+        if regNamesG8[p2] then
+          return {0x20, 16*regNamesG8[reg1]+regNamesG8[p2]}
+        elseif WordToNum(p2) then
+          local num = WordToNum(p2)
+          num = NumToNBit(tonumber(num), 8) or error("MOV to g8 register takes 8-bit literal")
+          return {0x80+regNamesG8[reg1], num}
+        elseif WordToChar(p2) then
+          local char = WordToChar(p2)
+          return {0x80+regNamesG8[reg1], NumToNBit(char:byte(), 8)}
+        elseif reg1 == "AL" then
+          if p2 == "F" then
+            return {0x22, 0x01}
+          elseif p2 == "IC" then
+            return {0x22, 0x02}
+          elseif p2 == "T" then
+            return {0x2B}
+          end
+          local bpoffset = p2:match("^%[BP([%+%-]%d+)%]$")
+          if bpoffset then
+            bpoffset = NumToNBit(tonumber(bpoffset), 8) or error("MOV BP offsets should be 8-bit signed values")
+            return {0x23, bpoffset}
+          elseif p2:find("^%[BP%]$") then
+            return {0x23, 0}
+          elseif p2:find("^%[C%]$") then
+            return {0x24}
+          end
+        end
+      elseif reg1 == "T" then
+        if p2 == "AL" then
+          return {0x2C}
+        end
+      elseif regNamesR16[reg1] then
+        if regNamesR16[p2] then
+          return {0x21, 16*regNamesR16[reg1]+regNamesR16[p2]}
+        elseif WordToNum(p2) then
+          local num = WordToNum(p2)
+          num = NumToNBit(tonumber(num), 16) or error("MOV to r16 register takes 16-bit literal")
+          return {0x90+regNamesR16[reg1], num%256, math.floor(num/256)}
+        elseif WordToLabel(p2) then
+          local label = WordToLabel(p2)
+          references[self] = label
+          return {0x90+regNamesR16[reg1], true, true}
+        elseif WordToChar(p2) then
+          local char = WordToChar(p2)
+          return {0x90+regNamesR16[reg1], NumToNBit(char:byte(), 8), 0}
+        elseif reg1 == "A" then
+          if p2 == "IP" then
+            return {0x22, 0x03}
+          end
+        end
+      end
+    elseif p1:find("^%[BP[%+%-]?%d*%]$") then
+      local bpoffset = p1:match("^%[BP([%+%-]%d+)%]$")
+      if bpoffset then
+        if p2 == "AL" then
+          bpoffset = WordToNum(bpoffset) or error("MOV to BP offset takes 8-bit offset: a number")
+          bpoffset = NumToNBit(tonumber(bpoffset), 8) or error("MOV to BP offset requires 8-bit offset")
+          return {0x25, bpoffset}
+        end
+      elseif p1:find("^%[BP%]$") then
+        return {0x25, 0}
+      end
+    elseif p1:find("^%[C%]$") then
+      return {0x26}
+    end
+    error("Malformed MOV statement")
+  end,
   SWP = function (self, references)
-		return {0x28}
-	end,
+    return {0x28}
+  end,
   PUSH = function (self, references, p1)
-		local reg1 = WordToReg(p1) or error("PUSH argument should be register")
-		if regNamesG8[p1] then
-			return {0xA0+regNamesG8[p1]}
-		elseif regNamesR16[p1] then
-			return {0xB0+regNamesR16[p1]}
-		end
-		error("PUSH takes g8 or r16 register")
-	end,
+    local reg1 = WordToReg(p1) or error("PUSH argument should be register")
+    if regNamesG8[p1] then
+      return {0xA0+regNamesG8[p1]}
+    elseif regNamesR16[p1] then
+      return {0xB0+regNamesR16[p1]}
+    end
+    error("PUSH takes g8 or r16 register")
+  end,
   POP = function (self, references, p1)
-		local reg1 = WordToReg(p1) or error("POP argument should be register")
-		if regNamesG8[p1] then
-			return {0xC0+regNamesG8[p1]}
-		elseif regNamesR16[p1] then
-			return {0xD0+regNamesR16[p1]}
-		end
-		error("POP takes g8 or r16 register")
-	end,
+    local reg1 = WordToReg(p1) or error("POP argument should be register")
+    if regNamesG8[p1] then
+      return {0xC0+regNamesG8[p1]}
+    elseif regNamesR16[p1] then
+      return {0xD0+regNamesR16[p1]}
+    end
+    error("POP takes g8 or r16 register")
+  end,
   JP = function (self, references, p1)
-		local num = WordToNum(p1)
-		local label = WordToLabel(p1)
-		if num then
-			num = NumToNBit(tonumber(num), 16) or error("JP takes 16-bit values")
-			return {0x40, num%256, math.floor(num/256)}
-		elseif label then
-			references[self] = label
-			return {0x40, true, true}
-		end
-		error("JP takes 16-bit literal or label")
-	end,
+    local num = WordToNum(p1)
+    local label = WordToLabel(p1)
+    if num then
+      num = NumToNBit(tonumber(num), 16) or error("JP takes 16-bit values")
+      return {0x40, num%256, math.floor(num/256)}
+    elseif label then
+      references[self] = label
+      return {0x40, true, true}
+    end
+    error("JP takes 16-bit literal or label")
+  end,
   JZ = function (self, references, p1)
-		local num = WordToNum(p1)
-		local label = WordToLabel(p1)
-		if num then
-			num = NumToNBit(tonumber(num), 16) or error("JZ takes 16-bit values")
-			return {0x41, num%256, math.floor(num/256)}
-		elseif label then
-			references[self] = label
-			return {0x41, true, true}
-		end
-		error("JZ takes 16-bit literal or label")
-	end,
+    local num = WordToNum(p1)
+    local label = WordToLabel(p1)
+    if num then
+      num = NumToNBit(tonumber(num), 16) or error("JZ takes 16-bit values")
+      return {0x41, num%256, math.floor(num/256)}
+    elseif label then
+      references[self] = label
+      return {0x41, true, true}
+    end
+    error("JZ takes 16-bit literal or label")
+  end,
   JC = function (self, references, p1)
-		local num = WordToNum(p1)
-		local label = WordToLabel(p1)
-		if num then
-			num = NumToNBit(tonumber(num), 16) or error("JC takes 16-bit values")
-			return {0x42, num%256, math.floor(num/256)}
-		elseif label then
-			references[self] = label
-			return {0x42, true, true}
-		end
-		error("JC takes 16-bit literal or label")
-	end,
+    local num = WordToNum(p1)
+    local label = WordToLabel(p1)
+    if num then
+      num = NumToNBit(tonumber(num), 16) or error("JC takes 16-bit values")
+      return {0x42, num%256, math.floor(num/256)}
+    elseif label then
+      references[self] = label
+      return {0x42, true, true}
+    end
+    error("JC takes 16-bit literal or label")
+  end,
   JNZ = function (self, references, p1)
-		local num = WordToNum(p1)
-		local label = WordToLabel(p1)
-		if num then
-			num = NumToNBit(tonumber(num), 16) or error("JNZ takes 16-bit values")
-			return {0x43, num%256, math.floor(num/256)}
-		elseif label then
-			references[self] = label
-			return {0x43, true, true}
-		end
-		error("JNZ takes 16-bit literal or label")
-	end,
+    local num = WordToNum(p1)
+    local label = WordToLabel(p1)
+    if num then
+      num = NumToNBit(tonumber(num), 16) or error("JNZ takes 16-bit values")
+      return {0x43, num%256, math.floor(num/256)}
+    elseif label then
+      references[self] = label
+      return {0x43, true, true}
+    end
+    error("JNZ takes 16-bit literal or label")
+  end,
   JNC = function (self, references, p1)
-		local num = WordToNum(p1)
-		local label = WordToLabel(p1)
-		if num then
-			num = NumToNBit(tonumber(num), 16) or error("JNC takes 16-bit values")
-			return {0x44, num%256, math.floor(num/256)}
-		elseif label then
-			references[self] = label
-			return {0x44, true, true}
-		end
-		error("JNC takes 16-bit literal or label")
-	end,
+    local num = WordToNum(p1)
+    local label = WordToLabel(p1)
+    if num then
+      num = NumToNBit(tonumber(num), 16) or error("JNC takes 16-bit values")
+      return {0x44, num%256, math.floor(num/256)}
+    elseif label then
+      references[self] = label
+      return {0x44, true, true}
+    end
+    error("JNC takes 16-bit literal or label")
+  end,
   CALL = function (self, references, p1)
-		local num = WordToNum(p1)
-		local label = WordToLabel(p1)
-		if num then
-			num = NumToNBit(tonumber(num), 16) or error("CALL takes 16-bit literals")
-			return {0x48, num%256, math.floor(num/256)}
-		elseif label then
-			references[self] = label
-			return {0x48, true, true}
-		elseif p1:find("^%[C%]$") then
-			return {0x49}
-		end
-	end,
+    local num = WordToNum(p1)
+    local label = WordToLabel(p1)
+    if num then
+      num = NumToNBit(tonumber(num), 16) or error("CALL takes 16-bit literals")
+      return {0x48, num%256, math.floor(num/256)}
+    elseif label then
+      references[self] = label
+      return {0x48, true, true}
+    elseif p1:find("^%[C%]$") then
+      return {0x49}
+    end
+  end,
   INT = function (self, reference, p1)
-		local num = WordToNum(p1) or error("INT takes an 8-bit literal")
-		num = NumToNBit(tonumber(p1)) or error("INT takes an 8-bit literal")
-		return {0x4A, num}
-	end,
+    local num = WordToNum(p1) or error("INT takes an 8-bit literal")
+    num = NumToNBit(tonumber(p1)) or error("INT takes an 8-bit literal")
+    return {0x4A, num}
+  end,
   RET = function (self, reference)
-		return {0x4B}
-	end,
+    return {0x4B}
+  end,
   IRET = function (self, reference)
-		return {0x4C}
-	end,
+    return {0x4C}
+  end,
   EIH = function (self, reference)
-		return {0x50}
-	end,
+    return {0x50}
+  end,
   DIH = function (self, reference)
-		return {0x51}
-	end,
+    return {0x51}
+  end,
   ESI = function (self, reference)
-		return {0x52}
-	end,
+    return {0x52}
+  end,
   DSI = function (self, reference)
-		return {0x53}
-	end,
+    return {0x53}
+  end,
   ECI = function (self, reference)
-		return {0x54}
-	end,
+    return {0x54}
+  end,
   DCI = function (self, reference)
-		return {0x55}
-	end,
+    return {0x55}
+  end,
   IN = function (self, reference)
-		return {0x60}
-	end,
+    return {0x60}
+  end,
   OUT = function (self, reference)
-		return {0x61}
-	end,
+    return {0x61}
+  end,
   STOP = function (self, reference)
-		return {0x70}
-	end,
+    return {0x70}
+  end,
   DB = function (self, reference, p1)
-		local contents = self.sourceLine.contents:match("^%s+%u%u+%s+(.-)$") or error("DB given without data")
-		if WordToString(contents) then
-			local stringContents = WordToString(contents)
-			local resultData = {}
-			for i = 1, #stringContents do
-				resultData[i] = stringContents:sub(i, i):byte()
-			end
-			return resultData
-		elseif WordToChar(p1) then
-			local char = WordToChar(p1)
-			return {char:byte()}
-		elseif WordToNum(p1) then
-			local num = WordToNum(p1)
-			num = NumToNBit(tonumber(num), 8) or error("DB only takes 8-bit literals")
-			return {num}
-		end
-		error("DB takes a string, char, or 8-bit literal")
-	end
+    local contents = self.sourceLine.contents:match("^%s+%u%u+%s+(.-)$") or error("DB given without data")
+    if WordToString(contents) then
+      local stringContents = WordToString(contents)
+      local resultData = {}
+      for i = 1, #stringContents do
+        resultData[i] = stringContents:sub(i, i):byte()
+      end
+      return resultData
+    elseif WordToChar(p1) then
+      local char = WordToChar(p1)
+      return {char:byte()}
+    elseif WordToNum(p1) then
+      local num = WordToNum(p1)
+      num = NumToNBit(tonumber(num), 8) or error("DB only takes 8-bit literals")
+      return {num}
+    end
+    error("DB takes a string, char, or 8-bit literal")
+  end
 }
 
 local function LineToInstructionType(str)
@@ -509,7 +509,7 @@ print(self.type)
     self.p1, self.p2 = LineToParams2(self.sourceLine.contents)
   end
   self.code = codeGenerators[self.type](self, references, self.p1, self.p2)
-	return true
+  return true
 end
 
 return C_Instruction
