@@ -66,12 +66,22 @@ end
 
 local function LinkProgram(self)
   local bytes, labels, references = self.bytes, self.labels, self.references
-  for _, refPair in pairs(references) do
-    local label, target = unpack(refPair)
-    local labelPos = labels[label] or error("Referenced label "..label.." not found")
-    bytes[target+1] = labels[label]%256
-    bytes[target+2] = math.floor(labels[label]/256)
-  end
+	xpcall(function ()
+		for _, refPair in pairs(references) do
+			local label, target = unpack(refPair)
+			local labelPos = labels[label] or error("Referenced label "..label.." not found")
+			if bytes[target] == true then
+				bytes[target] = labels[label]%256
+				bytes[target+1] = math.floor(labels[label]/256)
+			else
+				bytes[target+1] = labels[label]%256
+				bytes[target+2] = math.floor(labels[label]/256)
+			end
+		end
+	end, function (catchMessage)
+		io.stderr:write("Link error:\n"..catchMessage.."\n")
+		os.exit(1)
+	end)
 end
 
 function C_ObjectFile:WriteBinary(filename)

@@ -1,4 +1,4 @@
-; Veltas OS
+; Lemongrab OS
 
 ; Calling convention:
 ; All registers are scratch other than SP and BP.
@@ -16,7 +16,7 @@
 ;;;;;;;;;;;;;
 .org 0x0000
 
-	; Start stack at end of memory
+	; Start system stack
 	MOV SP, 0xFFFF
 
 
@@ -39,6 +39,7 @@
 ; INT 0x01 - Instruction counter zero
 .org 0x0810
 	SWP
+	MOV SP, 0xFDFF
 	PUSH A
 
 	POP A
@@ -60,10 +61,25 @@
 .org 0x0840
 	IRET
 
-;;;;;;;;;;;;;;;;
-; Main OS Code ;
-;;;;;;;;;;;;;;;;
-.org 0x1000 ; Main OS code
+; INT 0x40 - System call
+.org 0x0C00
+	MOV C, vos_systemCallTable
+	ADD C, A
+	INC C
+	MOV AL, [C]
+	MOV AH, AL
+	DEC C
+	MOV AL, [C]
+	CALL [A]
+	IRET
+
+;;;;;;;;;;;;;;;;;;;;
+; Main System Code ;
+;;;;;;;;;;;;;;;;;;;;
+.org 0x1000
+
+vos_systemCallTable:
+;	DB MemoryAllocate
 
 vos_invalidInstructionError:
 	DB "Invalid instruction error!"
@@ -74,5 +90,8 @@ vos_doubleFaultError:
 	DB 0
 
 .include "low.asm"
-
+;.include "malloc.asm"
 .include "basic.asm"
+
+; Positioned assembly files must go at bottom of this file
+;.include "malloc_pool.asm"

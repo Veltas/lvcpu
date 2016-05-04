@@ -1,0 +1,15 @@
+.org 0x8000
+	; Next link (none)
+	DB 0x00
+	DB 0x00
+	; Previous link (none)
+	DB 0x00
+	DB 0x00
+	; Potential allocated body size (0xD000 - 0x8000 - 4)
+	DB 0xFC
+	DB 0x4F
+
+.org 0xCFFE
+	; Start address
+	DB 0x00
+	DB 0x80

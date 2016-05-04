@@ -41,3 +41,5 @@ PanicMessage__End:
 	MOV SP, BP
 	POP BP
 	RET
+
+; PanicValue(n16 

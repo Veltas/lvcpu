@@ -22,48 +22,45 @@ MemCopy:
 	ADD A, 0
 
 	JZ MemCopy__LoopEnd
-
 MemCopy__LoopStart:
+		; Remember loop counter
+		PUSH A
 
-	; Remember loop counter
-	PUSH A
+		; Read memory to copy
+		MOV AL, [BP+6]
+		MOV CL, AL
+		MOV AL, [BP+7]
+		MOV CH, AL
+		MOV AL, [C]
+		PUSH AL
 
-	; Read memory to copy
-	MOV AL, [BP+6]
-	MOV CL, AL
-	MOV AL, [BP+7]
-	MOV CH, AL
-	MOV AL, [C]
-	PUSH AL
+		; Increment source address
+		INC C
+		MOV AL, CL
+		MOV [BP+6], AL
+		MOV AL, CH
+		MOV [BP+7], AL
 
-	; Increment source address
-	INC C
-	MOV AL, CL
-	MOV [BP+6], AL
-	MOV AL, CH
-	MOV [BP+7], AL
+		; Write memory
+		MOV AL, [BP+4]
+		MOV CL, AL
+		MOV AL, [BP+5]
+		MOV CH, AL
+		POP AL
+		MOV [C], AL
 
-	; Write memory
-	MOV AL, [BP+4]
-	MOV CL, AL
-	MOV AL, [BP+5]
-	MOV CH, AL
-	POP AL
-	MOV [C], AL
+		; Increment dest address
+		INC C
+		MOV AL, CL
+		MOV [BP+4], AL
+		MOV AL, CH
+		MOV [BP+5], AL
 
-	; Increment dest address
-	INC C
-	MOV AL, CL
-	MOV [BP+4], AL
-	MOV AL, CH
-	MOV [BP+5], AL
+		; Check amount remaining to copy
+		POP A
+		ADD A, -1
 
-	; Check amount remaining to copy
-	POP A
-	ADD A, -1
-
-	JNZ MemCopy__LoopStart
-
+		JNZ MemCopy__LoopStart
 MemCopy__LoopEnd:
 
 	; Load return value
@@ -72,6 +69,65 @@ MemCopy__LoopEnd:
 	MOV SP, BP
 	POP BP
 	RET
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; n16 MemSet(n16 start, n16 amount, n8 value) ;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Sets all of [start, start+amount) to value, returns start
+
+MemSet:
+	PUSH BP
+	MOV BP, SP
+
+	MOV AL, [BP+7]
+	MOV AH, AL
+	MOV AL, [BP+6]
+
+	MOV SP, A
+
+	MOV CL, 0xE0
+	AND AL, CL
+
+	MOV C, A
+
+	MOV AL, [BP+5]
+	MOV AH, AL
+	MOV AL, [BP+4]
+
+	ADD SP, A
+
+	ADD C, 0
+	JZ MemSet__1_2
+
+	MOV AL, [BP+8]
+	MOV AH, AL
+
+MemSet__1_1:
+		PUSH A
+		PUSH A
+		PUSH A
+		PUSH A
+		PUSH A
+		PUSH A
+		PUSH A
+		PUSH A
+		PUSH A
+		PUSH A
+		PUSH A
+		PUSH A
+		PUSH A
+		PUSH A
+		PUSH A
+		PUSH A
+		ADD C, -32
+		JNZ MemSet__1_1
+MemSet__1_2:
+
+	MOV AL, [BP+6]
+	MOV AH, 0x1F
+	AND AH, AL
+
+	MOV AL, [BP+8]
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; u16 MultiplyU16(u16 x, u16 y) ;
@@ -187,3 +243,10 @@ Multiply16__JustMultiply:
 	MOV SP, BP
 	POP BP
 	RET
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; i8 FindFirstSet(n8 inputByte) ;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Returns first set digit, or -1 if given 0
+
+

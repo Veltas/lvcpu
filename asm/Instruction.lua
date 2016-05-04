@@ -420,9 +420,10 @@ local codeGenerators = {
     elseif label then
       references[self] = label
       return {0x48, true, true}
-    elseif p1:find("^%[C%]$") then
+    elseif p1:find("^%[A%]$") then
       return {0x49}
     end
+		error("Bad CALL format")
   end,
   INT = function (self, reference, p1)
     local num = WordToNum(p1) or error("INT takes an 8-bit literal")
@@ -478,6 +479,10 @@ local codeGenerators = {
       local num = WordToNum(p1)
       num = NumToNBit(tonumber(num), 8) or error("DB only takes 8-bit literals")
       return {num}
+		elseif WordToLabel(p1) then
+			local label = WordToLabel(p1)
+			reference[self] = label
+			return {true, true}
     end
     error("DB takes a string, char, or 8-bit literal")
   end
