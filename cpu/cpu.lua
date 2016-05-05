@@ -262,19 +262,19 @@ local instructions = {
     local regType, regParam = math.floor(param/16), param%16
     if regType == 0 then
       if regParam > 3 then
-				InvalidInstruction(); return
+        InvalidInstruction(); return
       end
       local index = reg8Names[regParam]
       reg[index] = (-reg[index])%256
     elseif regType == 1 then
       if regParam > 1 then
-				InvalidInstruction(); return
+        InvalidInstruction(); return
       elseif regParam == 0 then
-				local result = (-(256*reg.AH+reg.AL)) % 65536
-				reg.AH, reg.AL = math.floor(result/256), result%256
+        local result = (-(256*reg.AH+reg.AL)) % 65536
+        reg.AH, reg.AL = math.floor(result/256), result%256
       elseif regParam == 1 then
-				local result = (-(256*reg.CH+reg.CL)) % 65536
-				reg.CH, reg.CL = math.floor(result/256), result%256
+        local result = (-(256*reg.CH+reg.CL)) % 65536
+        reg.CH, reg.CL = math.floor(result/256), result%256
       end
     else
       InvalidInstruction(); return
@@ -342,12 +342,12 @@ local instructions = {
     local bin, result = ToBinary(reg[index]), ToBinary(0)
     if num < 8 then
       for i = 1,8-num do
-				result[num+i] = bin[i]
+        result[num+i] = bin[i]
       end
     else
       num = num - 16
       for i = 1,8-num do
-				result[i] = bin[i+num]
+        result[i] = bin[i+num]
       end
     end
     reg[index] = FromBinary(result)
@@ -386,27 +386,27 @@ local instructions = {
     end
     if reg1 == 0 then
       if reg2 == 1 then
-				reg.AH = reg.CH
-				reg.AL = reg.CL
+        reg.AH = reg.CH
+        reg.AL = reg.CL
       elseif reg2 > 1 then
-				reg.AH = math.floor(reg[reg16Names[reg2]])/256
-				reg.AL = reg[reg16Names[reg2]]%256
+        reg.AH = math.floor(reg[reg16Names[reg2]])/256
+        reg.AL = reg[reg16Names[reg2]]%256
       end
     elseif reg1 == 1 then
       if reg2 == 0 then
-				reg.CH = reg.AH
-				reg.CL = reg.AL
+        reg.CH = reg.AH
+        reg.CL = reg.AL
       elseif reg2 > 1 then
-				reg.CH = math.floor(reg[reg16Names[reg2]])/256
-				reg.CL = reg[reg16Names[reg2]]%256
+        reg.CH = math.floor(reg[reg16Names[reg2]])/256
+        reg.CL = reg[reg16Names[reg2]]%256
       end
     else
       if reg2 == 0 then
-				reg[reg16Names[reg1]] = 256*reg.AH + reg.AL
+        reg[reg16Names[reg1]] = 256*reg.AH + reg.AL
       elseif reg2 == 1 then
-				reg[reg16Names[reg1]] = 256*reg.CH + reg.CL
+        reg[reg16Names[reg1]] = 256*reg.CH + reg.CL
       else
-				reg[reg16Names[reg1]] = reg[reg16Names[reg2]]
+        reg[reg16Names[reg1]] = reg[reg16Names[reg2]]
       end
     end
   end,
@@ -534,10 +534,10 @@ local instructions = {
     local param = AdvanceCpu()
     if reg.interruptHandling then
       if not (param >= 0x40 and param <= 0x7F) then
-  InvalidInstruction(); return
+        InvalidInstruction(); return
       end
       if reg.interruptLevel == 0 then
-  reg.interruptLevel = 1
+        reg.interruptLevel = 1
       end
       reg.AH_ = math.floor(reg.IP/256)
       reg.AL_ = reg.IP%256
