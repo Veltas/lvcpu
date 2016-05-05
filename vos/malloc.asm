@@ -44,42 +44,42 @@
 ; These addresses are 0 for empty, or point to start of first link.
 ; The lists enumerate free memory spaces that were previously allocated memory.
 malloc_freeLists:
-	; Size 1
-	DB 0
-	DB 0
-	; Size 2+
-	DB 0
-	DB 0
-	; Size 4+
-	DB 0
-	DB 0
-	; Size 8+
-	DB 0
-	DB 0
-	; Size 16+
-	DB 0
-	DB 0
-	; Size 32+
-	DB 0
-	DB 0
-	; Size 64+
-	DB 0
-	DB 0
-	; Size 128+
-	DB 0
-	DB 0
-	; Size 256+
-	DB 0
-	DB 0
-	; Size 512+
-	DB 0
-	DB 0
-	; Size 1024+
-	DB 0
-	DB 0
-	; Size 2048+
-	DB 0x00
-	DB 0x80
+  ; Size 1
+  DB 0
+  DB 0
+  ; Size 2+
+  DB 0
+  DB 0
+  ; Size 4+
+  DB 0
+  DB 0
+  ; Size 8+
+  DB 0
+  DB 0
+  ; Size 16+
+  DB 0
+  DB 0
+  ; Size 32+
+  DB 0
+  DB 0
+  ; Size 64+
+  DB 0
+  DB 0
+  ; Size 128+
+  DB 0
+  DB 0
+  ; Size 256+
+  DB 0
+  DB 0
+  ; Size 512+
+  DB 0
+  DB 0
+  ; Size 1024+
+  DB 0
+  DB 0
+  ; Size 2048+
+  DB 0x00
+  DB 0x80
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; malloc_AllocateLink(u16 link, u16 size) ;
@@ -87,68 +87,68 @@ malloc_freeLists:
 ; Turns a link into an allocation
 
 malloc_AllocateLink:
-	PUSH BP
-	MOV BP, SP
+  PUSH BP
+  MOV BP, SP
 
-	MOV A, [BP+4]
-	MOV C, A
-	MOV A, [C]
+  MOV A, [BP+4]
+  MOV C, A
+  MOV A, [C]
 
-	; Store next pointer, isLast
-	PUSH A
+  ; Store next pointer, isLast
+  PUSH A
 
-	; Check next pointer, store isLast
-	ADD A, 0
-	JZ malloc_AllocateLink__1_1
-		MOV AL, 0
-		PUSH AL
-		JP malloc_AllocateLink__1_2
+  ; Check next pointer, store isLast
+  ADD A, 0
+  JZ malloc_AllocateLink__1_1
+    MOV AL, 0
+    PUSH AL
+    JP malloc_AllocateLink__1_2
 malloc_AllocateLink__1_1:
-		MOV AL, 1
-		PUSH AL
+    MOV AL, 1
+    PUSH AL
 malloc_AllocateLink__1_2:
 
-	ADD C, 3
-	MOV AL, [C]
-	MOV AH, AL
-	DEC C
-	MOV AL, [C]
+  ADD C, 3
+  MOV AL, [C]
+  MOV AH, AL
+  DEC C
+  MOV AL, [C]
 
-	; Store prev pointer, isFirst
-	ADD A, 0
-	PUSH A
-	JZ malloc_AllocateLink__2_1
-		MOV AL, 1
-		PUSH AL
-		JP malloc_AllocateLink__2_2
+  ; Store prev pointer, isFirst
+  ADD A, 0
+  PUSH A
+  JZ malloc_AllocateLink__2_1
+    MOV AL, 1
+    PUSH AL
+    JP malloc_AllocateLink__2_2
 malloc_AllocateLink__2_1:
-		PUSH AL
+    PUSH AL
 malloc_AllocateLink__2_2:
 
-	; Store body length
-	ADD C, 3
-	MOV AL, [C]
-	MOV AH, AL
-	DEC C
-	MOV AL, [C]
-	PUSH A
+  ; Store body length
+  ADD C, 3
+  MOV AL, [C]
+  MOV AH, AL
+  DEC C
+  MOV AL, [C]
+  PUSH A
 
-	MOV AL, [BP-3]
-	ADD AL, 0
-	JZ malloc_AllocateLink__3_1
-		MOV AL, [BP-2]
-		MOV CL, AL
-		MOV AL, [BP-1]
-		MOV CH, AL
-		MOV AL, 0
-		MOV [C], AL
-		INC C
-		MOV [C], AL
+  MOV AL, [BP-3]
+  ADD AL, 0
+  JZ malloc_AllocateLink__3_1
+    MOV AL, [BP-2]
+    MOV CL, AL
+    MOV AL, [BP-1]
+    MOV CH, AL
+    MOV AL, 0
+    MOV [C], AL
+    INC C
+    MOV [C], AL
 
 
-	MOV SP, BP
-	POP BP
-	RET
+  MOV SP, BP
+  POP BP
+  RET
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; u16 MemoryAllocate(u16 nBytes) ;
@@ -156,4 +156,4 @@ malloc_AllocateLink__2_2:
 ; Returns address of allocated area size nBytes, or 0.
 
 MemoryAllocate:
-	
+  
