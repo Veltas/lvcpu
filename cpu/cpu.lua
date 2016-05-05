@@ -436,8 +436,20 @@ local instructions = {
     end
     reg.AL = ReadMem((reg.BP + param) % 65536)
   end,
+  [0x29] = function () -- MOV A, [BP+i8]
+    local param = AdvanceCpu()
+    if param >= 128 then
+      param = param-256
+    end
+    reg.AL = ReadMem((reg.BP + param) % 65536)
+    reg.AH = ReadMem((reg.BP + param + 1) % 65536)
+  end,
   [0x24] = function () -- MOV AL, [C]
     reg.AL = ReadMem(256*reg.CH+reg.CL)
+  end,
+  [0x2A] = function () -- MOV A, [C]
+    reg.AL = ReadMem(256*reg.CH+reg.CL)
+		reg.AH = ReadMem((256*reg.CH+reg.CL+1) % 65536)
   end,
   [0x25] = function () -- MOV [BP+i8], AL
     local param = AdvanceCpu()
@@ -446,8 +458,20 @@ local instructions = {
     end
     WriteMem((reg.BP + param) % 65536, reg.AL)
   end,
+  [0x2B] = function () -- MOV [BP+i8], A
+    local param = AdvanceCpu()
+    if param >= 128 then
+      param = param-256
+    end
+    WriteMem((reg.BP + param) % 65536, reg.AL)
+    WriteMem((reg.BP + param + 1) % 65536, reg.AH)
+  end,
   [0x26] = function () -- MOV [C], AL
     WriteMem(256*reg.CH+reg.CL, reg.AL)
+  end,
+  [0x2C] = function () -- MOV [C], A
+    WriteMem(256*reg.CH+reg.CL, reg.AL)
+    WriteMem((256*reg.CH+reg.CL+1) % 65526, reg.AH)
   end,
   [0x28] = function () -- SWP
     local temp

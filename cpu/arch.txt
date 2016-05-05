@@ -163,12 +163,20 @@ MOV T, AL
 2C
 MOV AL, [BP+i8]
 23ii
+MOV A, [BP+i8]
+29ii
 MOV AL, [C]
 24
+MOV A, [C]
+2A
 MOV [BP+i8], AL
 25ii
+MOV [BP+i8], A
+2Bii
 MOV [C], AL
 26
+MOV [C], A
+2C
 MOV g8, n8
 8gnn
 MOV r16, n16

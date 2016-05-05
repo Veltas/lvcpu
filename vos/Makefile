@@ -5,7 +5,7 @@ CPU_CLOCK = 1000000
 .PHONY: all
 all: vos.bin
 
-vos.bin: vos.asm malloc.asm basic.asm
+vos.bin: vos.asm malloc.asm basic.asm string.asm low.asm malloc_pool.asm
 	$(ASM) $< $@
 
 .PHONY: run

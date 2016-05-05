@@ -309,24 +309,42 @@ local codeGenerators = {
           local char = WordToChar(p2)
           return {0x90+regNamesR16[reg1], NumToNBit(char:byte(), 8), 0}
         elseif reg1 == "A" then
+          local bpoffset = p2:match("^%[BP([%+%-]%d+)%]$")
           if p2 == "IP" then
             return {0x22, 0x03}
+					elseif bpoffset then
+            bpoffset = NumToNBit(tonumber(bpoffset), 8) or error("MOV BP offsets should be 8-bit signed values")
+            return {0x29, bpoffset}
+          elseif p2:find("^%[BP%]$") then
+            return {0x29, 0}
+          elseif p2:find("^%[C%]$") then
+            return {0x2A}
           end
         end
       end
     elseif p1:find("^%[BP[%+%-]?%d*%]$") then
       local bpoffset = p1:match("^%[BP([%+%-]%d+)%]$")
       if bpoffset then
+				bpoffset = WordToNum(bpoffset) or error("MOV to BP offset takes 8-bit offset: a number")
+				bpoffset = NumToNBit(tonumber(bpoffset), 8) or error("MOV to BP offset requires 8-bit offset")
         if p2 == "AL" then
-          bpoffset = WordToNum(bpoffset) or error("MOV to BP offset takes 8-bit offset: a number")
-          bpoffset = NumToNBit(tonumber(bpoffset), 8) or error("MOV to BP offset requires 8-bit offset")
           return {0x25, bpoffset}
-        end
+        elseif p2 == "A" then
+					return {0x2B, bpoffset}
+				end
       elseif p1:find("^%[BP%]$") then
-        return {0x25, 0}
+				if p2 == "AL" then
+					return {0x25, 0}
+				elseif p2 == "A" then
+					return {0x2B, 0}
+				end
       end
     elseif p1:find("^%[C%]$") then
-      return {0x26}
+			if p2 == "AL" then
+				return {0x26}
+			elseif p2 == "A" then
+				return {0x2C}
+			end
     end
     error("Malformed MOV statement")
   end,

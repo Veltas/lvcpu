@@ -65,11 +65,7 @@
 .org 0x0C00
 	MOV C, vos_systemCallTable
 	ADD C, A
-	INC C
-	MOV AL, [C]
-	MOV AH, AL
-	DEC C
-	MOV AL, [C]
+	MOV A, [C]
 	CALL [A]
 	IRET
 
@@ -94,4 +90,4 @@ vos_doubleFaultError:
 .include "basic.asm"
 
 ; Positioned assembly files must go at bottom of this file
-;.include "malloc_pool.asm"
+.include "malloc_pool.asm"

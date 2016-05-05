@@ -90,25 +90,21 @@ malloc_AllocateLink:
 	PUSH BP
 	MOV BP, SP
 
-	MOV AL, [BP+4]
-	MOV CL, AL
-	MOV AL, [BP+5]
-	MOV CH, AL
-
-	INC C
-	MOV AL, [C]
-	MOV AH, AL
-	DEC C
-	MOV AL, [C]
+	MOV A, [BP+4]
+	MOV C, A
+	MOV A, [C]
 
 	; Store next pointer, isLast
-	ADD A, 0
 	PUSH A
+
+	; Check next pointer, store isLast
+	ADD A, 0
 	JZ malloc_AllocateLink__1_1
-		MOV AL, 1
+		MOV AL, 0
 		PUSH AL
 		JP malloc_AllocateLink__1_2
 malloc_AllocateLink__1_1:
+		MOV AL, 1
 		PUSH AL
 malloc_AllocateLink__1_2:
 
