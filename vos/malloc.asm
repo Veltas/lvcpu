@@ -136,14 +136,10 @@ malloc_AllocateLink__2_2:
   MOV AL, [BP-3]
   ADD AL, 0
   JZ malloc_AllocateLink__3_1
-    MOV AL, [BP-2]
-    MOV CL, AL
-    MOV AL, [BP-1]
-    MOV CH, AL
-    MOV AL, 0
-    MOV [C], AL
-    INC C
-    MOV [C], AL
+    MOV A, [BP-2]
+    MOV C, A
+    MOV A, 0
+    MOV [C], A
 
 
   MOV SP, BP

@@ -14,9 +14,7 @@ MultiplyU16:
   ; Store less significant part
   MOV AL, [BP+4]
   MOV CL, AL
-  MOV AL, [BP+7]
-  MOV AH, AL
-  MOV AL, [BP+6]
+  MOV A, [BP+6]
   MUL A, CL
   PUSH A
 
