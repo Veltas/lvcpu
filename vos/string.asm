@@ -1,5 +1,30 @@
 ; String and general memory manipulation library
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; n16 StringLength(n16 str) ;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Returns number of bytes preceding first 0 from str
+
+StringLength:
+  PUSH BP
+  MOV BP, SP
+
+  MOV A, [BP+4]
+  MOV C, A
+
+StringLength__1:
+    MOV AL, [C]
+    INC C
+    ADD AL, 0
+    JNZ StringLength__1
+
+  DEC C
+  MOV A, C
+
+  MOV SP, BP
+  POP BP
+  RET
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; n16 StringCopy(n16 dest, n16 source) ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
