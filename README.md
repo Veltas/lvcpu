@@ -3,7 +3,7 @@ lvcpu
 
 Description of the architecture is in `cpu/arch.txt`.
 
-Emulator is `cpu/cpu.lua`.
+Emulator in `cpu/`.
 
 Assembler is `asm/asm.lua`.
 
