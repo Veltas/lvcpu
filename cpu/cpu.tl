@@ -746,7 +746,7 @@ while readChar and currentMemPosition < memorySize do
   local readByte = Integer(string.byte(String(readChar)))
   WriteMem(currentMemPosition, readByte)
   currentMemPosition = currentMemPosition + 1
-  readChar = binFile:read(1)
+  readChar = String(binFile:read(1))
 end
 
 if currentMemPosition == memorySize then
