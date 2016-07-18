@@ -30,11 +30,6 @@ local function String(str: value)
   end
 end
 
-local function NoFile()
-  error("Expected file!")
-  return io.stdin
-end
-
 local function ToBinary(val: integer)
   local bin: {boolean} = {false,false,false,false,false,false,false,false}
   for digit = 8,1,-1 do
@@ -62,13 +57,17 @@ local targetRate = Number(arg[1])
 -- Memory size in kB
 local memorySize = Integer(tonumber(arg[2])) * 1024
 
-local inFile = io.open(String(arg[3]), "rb") or NoFile()
-local outFile = io.open(String(arg[4]), "wb") or NoFile()
+local inFile = io.open(String(arg[3]), "rb")
+local outFile = io.open(String(arg[4]), "wb")
+
+assert(inFile)
+assert(outFile)
 
 inFile:setvbuf("no")
 outFile:setvbuf("no")
 
-local binFile = io.open(String(arg[5]), "rb") or NoFile()
+local binFile = io.open(String(arg[5]), "rb")
+assert(binFile)
 
 if arg[6] ~= "dump" then
   print = function (...) end
@@ -610,7 +609,9 @@ local instructions: {() -> ()} = {
     --reg.stepInterrupt = false
   end,
   [0x60] = function () -- IN
-    local readChar = inFile:read(1)
+    local input = inFile
+    assert(input)
+    local readChar = input:read(1)
     local readByte = 255
     if readChar then
       readByte = Integer(string.byte(String(readChar)))
@@ -618,7 +619,9 @@ local instructions: {() -> ()} = {
     reg.AL = readByte%256
   end,
   [0x61] = function () -- OUT
-    outFile:write(string.char(Integer(reg.AL)))
+    local output = outFile
+    assert(output)
+    output:write(string.char(Integer(reg.AL)))
   end,
   [0x70] = function () -- STOP
     powerOn = false
