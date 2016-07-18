@@ -67,7 +67,7 @@ end
 
 local powerOn = true
 
-local reg: {string: integer|boolean} = {
+local reg = {
   AL = 0,
   AH = 0,
   CL = 0,
@@ -94,6 +94,9 @@ local reg: {string: integer|boolean} = {
   --stepInterrupt = true,
 }
 
+local regLookup: {string: integer|boolean} = {}
+setmetatable(regLookup, {__index = reg}, {__newindex = reg})
+
 local clockPeriod = 1 / targetRate
 local timeSample = os.clock()
 
@@ -119,8 +122,8 @@ end
 
 local function AdvanceCpu()
   SyncClock()
-  local result = ReadMem(Integer(reg.IP))
-  reg.IP = (Integer(reg.IP) + 1) % 65536
+  local result = ReadMem(reg.IP)
+  reg.IP = (reg.IP + 1) % 65536
   return result
 end
 
@@ -140,15 +143,15 @@ local reg16Names: {string} = {
 
 local function InvalidInstruction()
   if reg.interruptHandling then
-    reg.interruptLevel = Integer(reg.interruptLevel) + 1
-    if Integer(reg.interruptLevel) >= 3 then
+    reg.interruptLevel = reg.interruptLevel + 1
+    if reg.interruptLevel >= 3 then
       powerOn = false; return
     end
-    local nextInstruction = Integer(reg.IP)
+    local nextInstruction = reg.IP
     reg.AL_ = nextInstruction // 256
     reg.AH_ = nextInstruction % 256
-    local code = Integer(reg.interruptLevel) == 1 and 0x00 or 0x03
-    reg.IP = (2048 * Integer(reg.T) + 16 * code) % 65536
+    local code = reg.interruptLevel == 1 and 0x00 or 0x03
+    reg.IP = (2048 * reg.T + 16 * code) % 65536
   end
 end
 
@@ -162,11 +165,11 @@ local instructions: {() -> ()} = {
       InvalidInstruction()
       return
     end
-    local result = Integer(reg[String(reg8Names[reg1])]) + Integer(reg[String(reg8Names[reg2])])
+    local result = Integer(regLookup[String(reg8Names[reg1])]) + Integer(regLookup[String(reg8Names[reg2])])
     local flags = result >= 256 and 2 or 0
     result = result % 256
-    reg[String(reg8Names[reg1])] = result
-    reg.F = flags + (reg[String(reg8Names[reg1])] == 0 and 1 or 0)
+    regLookup[String(reg8Names[reg1])] = result
+    reg.F = flags + (regLookup[String(reg8Names[reg1])] == 0 and 1 or 0)
   end,
   [0x02] = function () -- ADD r16, r16
     local param = AdvanceCpu()
@@ -177,38 +180,38 @@ local instructions: {() -> ()} = {
     end
     local reg2Value = 0
     if reg2 == 0 then
-      reg2Value = 256 * Integer(reg.AH) + Integer(reg.AL)
+      reg2Value = 256 * reg.AH + reg.AL
     elseif reg2 == 1 then
-      reg2Value = 256 * Integer(reg.CH) + Integer(reg.CL)
+      reg2Value = 256 * reg.CH + reg.CL
     elseif reg2 == 2 then
-      reg2Value = Integer(reg.SP)
+      reg2Value = reg.SP
     elseif reg2 == 3 then
-      reg2Value = Integer(reg.BP)
+      reg2Value = reg.BP
     end
     local reg1Value = 0
     if reg1 == 0 then
-      reg1Value = 256 * Integer(reg.AH) + Integer(reg.AL)
+      reg1Value = 256 * reg.AH + reg.AL
       local result = reg1Value + reg2Value
       local flags = result >= 65536 and 2 or 0
       result = result % 65536
       reg.F = flags + (result == 0 and 1 or 0)
       reg.AH, reg.AL = result // 256, result % 256
     elseif reg1 == 1 then
-      reg1Value = 256 * Integer(reg.CH) + Integer(reg.CL)
+      reg1Value = 256 * reg.CH + reg.CL
       local result = reg1Value + reg2Value
       local flags = result >= 65536 and 2 or 0
       result = result % 65536
       reg.F = flags + (result == 0 and 1 or 0)
       reg.CH, reg.CL = result // 256, result % 256
     elseif reg1 == 2 then
-      reg1Value = Integer(reg.SP)
+      reg1Value = reg.SP
       local result = reg1Value + reg2Value
       local flags = result >= 65536 and 2 or 0
       result = result % 65536
       reg.F = flags + (result == 0 and 1 or 0)
       reg.SP = result
     elseif reg1 == 3 then
-      reg1Value = Integer(reg.BP)
+      reg1Value = reg.BP
       local result = reg1Value + reg2Value
       local flags = result >= 65536 and 2 or 0
       result = result % 65536
@@ -223,10 +226,10 @@ local instructions: {() -> ()} = {
       InvalidInstruction()
       return
     end
-    local result = Integer(reg[String(reg8Names[reg1])]) - Integer(reg[String(reg8Names[reg2])])
+    local result = Integer(regLookup[String(reg8Names[reg1])]) - Integer(regLookup[String(reg8Names[reg2])])
     result = result % 256
-    reg[String(reg8Names[reg1])] = result
-    reg.F = reg[String(reg8Names[reg1])] == 0 and 1 or 0
+    regLookup[String(reg8Names[reg1])] = result
+    reg.F = regLookup[String(reg8Names[reg1])] == 0 and 1 or 0
   end,
   [0x04] = function () -- SUB r16, r16
     local param = AdvanceCpu()
@@ -237,35 +240,35 @@ local instructions: {() -> ()} = {
     end
     local reg2Value = 0
     if reg2 == 0 then
-      reg2Value = 256 * Integer(reg.AH) + Integer(reg.AL)
+      reg2Value = 256 * reg.AH + reg.AL
     elseif reg2 == 1 then
-      reg2Value = 256 * Integer(reg.CH) + Integer(reg.CL)
+      reg2Value = 256 * reg.CH + reg.CL
     elseif reg2 == 2 then
-      reg2Value = Integer(reg.SP)
+      reg2Value = reg.SP
     elseif reg2 == 3 then
-      reg2Value = Integer(reg.BP)
+      reg2Value = reg.BP
     end
     local reg1Value = 0
     if reg1 == 0 then
-      reg1Value = 256 * Integer(reg.AH) + Integer(reg.AL)
+      reg1Value = 256 * reg.AH + reg.AL
       local result = reg1Value - reg2Value
       result = result % 65536
       reg.F = (result == 0 and 1 or 0)
       reg.AH, reg.AL = result // 256, result % 256
     elseif reg1 == 1 then
-      reg1Value = 256 * Integer(reg.CH) + Integer(reg.CL)
+      reg1Value = 256 * reg.CH + reg.CL
       local result = reg1Value - reg2Value
       result = result % 65536
       reg.F = (result == 0 and 1 or 0)
       reg.CH, reg.CL = result // 256, result % 256
     elseif reg1 == 2 then
-      reg1Value = Integer(reg.SP)
+      reg1Value = reg.SP
       local result = reg1Value - reg2Value
       result = result % 65536
       reg.F = (result == 0 and 1 or 0)
       reg.SP = result
     elseif reg1 == 3 then
-      reg1Value = Integer(reg.BP)
+      reg1Value = reg.BP
       local result = reg1Value - reg2Value
       result = result % 65536
       reg.F = (result == 0 and 1 or 0)
@@ -273,11 +276,11 @@ local instructions: {() -> ()} = {
     end
   end,
   [0x05] = function() -- INC C
-    local result = (256*Integer(reg.CH) + Integer(reg.CL) + 1) % 65536
+    local result = (256*reg.CH + reg.CL + 1) % 65536
     reg.CH, reg.CL = result//256, result%256
   end,
   [0x06] = function() -- DEC C
-    local result = (256*Integer(reg.CH) + Integer(reg.CL) - 1) % 65536
+    local result = (256*reg.CH + reg.CL - 1) % 65536
     reg.CH, reg.CL = result//256, result%256
   end,
   [0x07] = function() -- NEG g8 | NEG g16
@@ -288,15 +291,15 @@ local instructions: {() -> ()} = {
         InvalidInstruction(); return
       end
       local index = String(reg8Names[regParam])
-      reg[index] = (-Integer(reg[index]))%256
+      regLookup[index] = (-Integer(regLookup[index]))%256
     elseif regType == 1 then
       if regParam > 1 then
         InvalidInstruction(); return
       elseif regParam == 0 then
-        local result = (-(256*Integer(reg.AH)+Integer(reg.AL))) % 65536
+        local result = (-(256*reg.AH+reg.AL)) % 65536
         reg.AH, reg.AL = result//256, result%256
       elseif regParam == 1 then
-        local result = (-(256*Integer(reg.CH)+Integer(reg.CL))) % 65536
+        local result = (-(256*reg.CH+reg.CL)) % 65536
         reg.CH, reg.CL = result//256, result%256
       end
     else
@@ -310,11 +313,11 @@ local instructions: {() -> ()} = {
       InvalidInstruction(); return
     end
     local i1, i2 = String(reg8Names[reg1]), String(reg8Names[reg2])
-    local bin1, bin2 = ToBinary(Integer(reg[i1])), ToBinary(Integer(reg[i2]))
+    local bin1, bin2 = ToBinary(Integer(regLookup[i1])), ToBinary(Integer(regLookup[i2]))
     for i = 1,8 do
       bin1[i] = bin1[i] and bin2[i]
     end
-    reg[i1] = FromBinary(bin1)
+    regLookup[i1] = FromBinary(bin1)
   end,
   [0x09] = function () -- OR g8, g8
     local param = AdvanceCpu()
@@ -323,11 +326,11 @@ local instructions: {() -> ()} = {
       InvalidInstruction(); return
     end
     local i1, i2 = String(reg8Names[reg1]), String(reg8Names[reg2])
-    local bin1, bin2 = ToBinary(Integer(reg[i1])), ToBinary(Integer(reg[i2]))
+    local bin1, bin2 = ToBinary(Integer(regLookup[i1])), ToBinary(Integer(regLookup[i2]))
     for i = 1,8 do
       bin1[i] = bin1[i] or bin2[i]
     end
-    reg[i1] = FromBinary(bin1)
+    regLookup[i1] = FromBinary(bin1)
   end,
   [0x0A] = function () -- XOR g8, g8
     local param = AdvanceCpu()
@@ -336,11 +339,11 @@ local instructions: {() -> ()} = {
       InvalidInstruction(); return
     end
     local i1, i2 = String(reg8Names[reg1]), String(reg8Names[reg2])
-    local bin1, bin2 = ToBinary(Integer(reg[i1])), ToBinary(Integer(reg[i2]))
+    local bin1, bin2 = ToBinary(Integer(regLookup[i1])), ToBinary(Integer(regLookup[i2]))
     for i = 1,8 do
       bin1[i] = bin1[i] ~= bin2[i]
     end
-    reg[i1] = FromBinary(bin1)
+    regLookup[i1] = FromBinary(bin1)
   end,
   [0x0B] = function () -- ROT g8, u3
     local param = AdvanceCpu()
@@ -349,11 +352,11 @@ local instructions: {() -> ()} = {
       InvalidInstruction(); return
     end
     local index = String(reg8Names[regParam])
-    local bin, result = ToBinary(Integer(reg[index])), ToBinary(0)
+    local bin, result = ToBinary(Integer(regLookup[index])), ToBinary(0)
     for i = 1,8 do
       result[(i+num-1)%8+1] = bin[i]
     end
-    reg[index] = FromBinary(result)
+    regLookup[index] = FromBinary(result)
   end,
   [0x0C] = function () -- SFT g8, i4
     local param = AdvanceCpu()
@@ -362,7 +365,7 @@ local instructions: {() -> ()} = {
       InvalidInstruction(); return
     end
     local index = String(reg8Names[regParam])
-    local bin, result = ToBinary(Integer(reg[index])), ToBinary(0)
+    local bin, result = ToBinary(Integer(regLookup[index])), ToBinary(0)
     if num < 8 then
       for i = 1,8-num do
         result[num+i] = bin[i]
@@ -373,7 +376,7 @@ local instructions: {() -> ()} = {
         result[i] = bin[i+num]
       end
     end
-    reg[index] = FromBinary(result)
+    regLookup[index] = FromBinary(result)
   end,
   [0x0D] = function () -- MUL g8, g8 | MUL A, g8
     local param = AdvanceCpu()
@@ -383,11 +386,11 @@ local instructions: {() -> ()} = {
     end
     local num1 = 0
     if reg1 == 4 then
-      num1 = 256*Integer(reg.AH) + Integer(reg.AL)
+      num1 = 256*reg.AH + reg.AL
     else
-      num1 = Integer(reg[String(reg8Names[reg1])])
+      num1 = Integer(regLookup[String(reg8Names[reg1])])
     end
-    local num2 = Integer(reg[String(reg8Names[reg1])])
+    local num2 = Integer(regLookup[String(reg8Names[reg1])])
     local result = num1 * num2
     reg.F = result >= 65536 and 2 or 0
     result = result%65536
@@ -399,7 +402,7 @@ local instructions: {() -> ()} = {
     if reg1 > 3 or reg2 > 3 then
       InvalidInstruction(); return
     end
-    reg[String(reg8Names[reg1])] = Integer(reg[String(reg8Names[reg2])])
+    regLookup[String(reg8Names[reg1])] = Integer(regLookup[String(reg8Names[reg2])])
   end,
   [0x21] = function () -- MOV r16, r16
     local param = AdvanceCpu()
@@ -412,24 +415,24 @@ local instructions: {() -> ()} = {
         reg.AH = reg.CH
         reg.AL = reg.CL
       elseif reg2 > 1 then
-        reg.AH = Integer(reg[String(reg16Names[reg2])])//256
-        reg.AL = Integer(reg[String(reg16Names[reg2])])%256
+        reg.AH = Integer(regLookup[String(reg16Names[reg2])])//256
+        reg.AL = Integer(regLookup[String(reg16Names[reg2])])%256
       end
     elseif reg1 == 1 then
       if reg2 == 0 then
         reg.CH = reg.AH
         reg.CL = reg.AL
       elseif reg2 > 1 then
-        reg.CH = Integer(reg[String(reg16Names[reg2])])//256
-        reg.CL = Integer(reg[String(reg16Names[reg2])])%256
+        reg.CH = Integer(regLookup[String(reg16Names[reg2])])//256
+        reg.CL = Integer(regLookup[String(reg16Names[reg2])])%256
       end
     else
       if reg2 == 0 then
-        reg[String(reg16Names[reg1])] = 256*Integer(reg.AH) + Integer(reg.AL)
+        regLookup[String(reg16Names[reg1])] = 256*reg.AH + reg.AL
       elseif reg2 == 1 then
-        reg[String(reg16Names[reg1])] = 256*Integer(reg.CH) + Integer(reg.CL)
+        regLookup[String(reg16Names[reg1])] = 256*reg.CH + reg.CL
       else
-        reg[String(reg16Names[reg1])] = Integer(reg[String(reg16Names[reg2])])
+        regLookup[String(reg16Names[reg1])] = Integer(regLookup[String(reg16Names[reg2])])
       end
     end
   end,
@@ -443,7 +446,7 @@ local instructions: {() -> ()} = {
     elseif param == 2 then
       reg.AL = reg.IC
     elseif param == 3 then
-      reg.AH, reg.AL = Integer(reg.IP)//256, Integer(reg.IP)%256
+      reg.AH, reg.AL = reg.IP//256, reg.IP%256
     end
   end,
   [0x2B] = function () -- MOV AL, T
@@ -457,54 +460,54 @@ local instructions: {() -> ()} = {
     if param >= 128 then
       param = param-256
     end
-    reg.AL = ReadMem((Integer(reg.BP) + param) % 65536)
+    reg.AL = ReadMem((reg.BP + param) % 65536)
   end,
   [0x29] = function () -- MOV A, [BP+i8]
     local param = AdvanceCpu()
     if param >= 128 then
       param = param-256
     end
-    reg.AL = ReadMem((Integer(reg.BP) + param) % 65536)
-    reg.AH = ReadMem((Integer(reg.BP) + param + 1) % 65536)
+    reg.AL = ReadMem((reg.BP + param) % 65536)
+    reg.AH = ReadMem((reg.BP + param + 1) % 65536)
   end,
   [0x24] = function () -- MOV AL, [C]
-    reg.AL = ReadMem(256*Integer(reg.CH)+Integer(reg.CL))
+    reg.AL = ReadMem(256*reg.CH+reg.CL)
   end,
   [0x2A] = function () -- MOV A, [C]
-    reg.AL = ReadMem(256*Integer(reg.CH)+Integer(reg.CL))
-    reg.AH = ReadMem((256*Integer(reg.CH)+Integer(reg.CL)+1) % 65536)
+    reg.AL = ReadMem(256*reg.CH+reg.CL)
+    reg.AH = ReadMem((256*reg.CH+reg.CL+1) % 65536)
   end,
   [0x25] = function () -- MOV [BP+i8], AL
     local param = AdvanceCpu()
     if param >= 128 then
       param = param-256
     end
-    WriteMem((Integer(reg.BP) + param) % 65536, Integer(reg.AL))
+    WriteMem((reg.BP + param) % 65536, reg.AL)
   end,
   [0x2B] = function () -- MOV [BP+i8], A
     local param = AdvanceCpu()
     if param >= 128 then
       param = param-256
     end
-    WriteMem((Integer(reg.BP) + param) % 65536, Integer(reg.AL))
-    WriteMem((Integer(reg.BP) + param + 1) % 65536, Integer(reg.AH))
+    WriteMem((reg.BP + param) % 65536, reg.AL)
+    WriteMem((reg.BP + param + 1) % 65536, reg.AH)
   end,
   [0x26] = function () -- MOV [C], AL
-    WriteMem(256*Integer(reg.CH)+Integer(reg.CL), Integer(reg.AL))
+    WriteMem(256*reg.CH+reg.CL, reg.AL)
   end,
   [0x2C] = function () -- MOV [C], A
-    WriteMem(256*Integer(reg.CH)+Integer(reg.CL), Integer(reg.AL))
-    WriteMem((256*Integer(reg.CH)+Integer(reg.CL)+1) % 65526, Integer(reg.AH))
+    WriteMem(256*reg.CH+reg.CL, reg.AL)
+    WriteMem((256*reg.CH+reg.CL+1) % 65526, reg.AH)
   end,
   [0x28] = function () -- SWP
     local temp = 0
-    temp = Integer(reg.AH); reg.AH = Integer(reg.AH_); reg.AH_ = temp
-    temp = Integer(reg.AL); reg.AL = Integer(reg.AL_); reg.AL_ = temp
-    temp = Integer(reg.CH); reg.CH = Integer(reg.CH_); reg.CH_ = temp
-    temp = Integer(reg.CL); reg.CL = Integer(reg.CL_); reg.CL_ = temp
-    temp = Integer(reg.SP); reg.SP = Integer(reg.SP_); reg.SP = temp
-    temp = Integer(reg.BP); reg.BP = Integer(reg.BP_); reg.BP = temp
-    temp = Integer(reg.F); reg.F = Integer(reg.F_); reg.F_ = temp
+    temp = reg.AH; reg.AH = reg.AH_; reg.AH_ = temp
+    temp = reg.AL; reg.AL = reg.AL_; reg.AL_ = temp
+    temp = reg.CH; reg.CH = reg.CH_; reg.CH_ = temp
+    temp = reg.CL; reg.CL = reg.CL_; reg.CL_ = temp
+    temp = reg.SP; reg.SP = reg.SP_; reg.SP = temp
+    temp = reg.BP; reg.BP = reg.BP_; reg.BP = temp
+    temp = reg.F; reg.F = reg.F_; reg.F_ = temp
   end,
   [0x40] = function () -- JP n16
     local p1 = AdvanceCpu()
@@ -542,16 +545,16 @@ local instructions: {() -> ()} = {
   [0x48] = function () -- CALL n16
     local p1 = AdvanceCpu()
     local p2 = AdvanceCpu()
-    reg.SP = (Integer(reg.SP)-2)%65536
-    WriteMem(Integer(reg.SP), Integer(reg.IP)%256)
-    WriteMem((Integer(reg.SP)+1)%65536, Integer(reg.IP)//256)
+    reg.SP = (reg.SP-2)%65536
+    WriteMem(reg.SP, reg.IP%256)
+    WriteMem((reg.SP+1)%65536, reg.IP//256)
     reg.IP = (p1+256*p2)%65536
   end,
   [0x49] = function () -- CALL [A]
-    reg.SP = (Integer(reg.SP)-2)%65536
-    WriteMem(Integer(reg.SP), Integer(reg.IP)%256)
-    WriteMem((Integer(reg.SP)+1)%65536, Integer(reg.IP)//256)
-    reg.IP = 256*Integer(reg.AH)+Integer(reg.AL)
+    reg.SP = (reg.SP-2)%65536
+    WriteMem(reg.SP, reg.IP%256)
+    WriteMem((reg.SP+1)%65536, reg.IP//256)
+    reg.IP = 256*reg.AH+reg.AL
   end,
   [0x4A] = function () -- INT n8
     local param = AdvanceCpu()
@@ -562,20 +565,20 @@ local instructions: {() -> ()} = {
       if reg.interruptLevel == 0 then
         reg.interruptLevel = 1
       end
-      reg.AH_ = Integer(reg.IP)//256
-      reg.AL_ = Integer(reg.IP)%256
+      reg.AH_ = reg.IP//256
+      reg.AL_ = reg.IP%256
     end
   end,
   [0x4B] = function () -- RET
-    local returnAddress = ReadMem(Integer(reg.SP)) + 256*ReadMem((Integer(reg.SP)+1)%65536)
-    reg.SP = (Integer(reg.SP)+2)%65536
+    local returnAddress = ReadMem(reg.SP) + 256*ReadMem((reg.SP+1)%65536)
+    reg.SP = (reg.SP+2)%65536
     reg.IP = returnAddress
   end,
   [0x4C] = function () -- IRET
-    if Integer(reg.interruptLevel) > 0 then
-      reg.interruptLevel = Integer(reg.interruptLevel) - 1
+    if reg.interruptLevel > 0 then
+      reg.interruptLevel = reg.interruptLevel - 1
     end
-    reg.IP = (256*Integer(reg.AH_)+Integer(reg.AL_))%65536
+    reg.IP = (256*reg.AH_+reg.AL_)%65536
   end,
   [0x50] = function () -- EIH
     reg.interruptHandling = true
@@ -608,7 +611,7 @@ local instructions: {() -> ()} = {
   [0x61] = function () -- OUT
     local output = outFile
     assert(output)
-    output:write(string.char(Integer(reg.AL)))
+    output:write(string.char(reg.AL))
   end,
   [0x70] = function () -- STOP
     powerOn = false
@@ -622,7 +625,7 @@ local shortInstructions: {(integer) -> ()} = {
     if regParam > 3 then
       InvalidInstruction(); return
     end
-    reg[String(reg8Names[regParam])] = param
+    regLookup[String(reg8Names[regParam])] = param
   end,
   [0x9] = function (firstByte: integer) -- MOV r16, n16
     local regParam = firstByte - 9*16
@@ -637,7 +640,7 @@ local shortInstructions: {(integer) -> ()} = {
     elseif regParam == 1 then
       reg.CH, reg.CL = p2, p1
     else
-      reg[String(reg16Names[regParam])] = param
+      regLookup[String(reg16Names[regParam])] = param
     end
   end,
   [0xA] = function (firstByte: integer) -- PUSH g8
@@ -645,25 +648,25 @@ local shortInstructions: {(integer) -> ()} = {
     if regParam > 3 then
       InvalidInstruction(); return
     end
-    reg.SP = (Integer(reg.SP)-1)%65536
-    WriteMem(Integer(reg.SP), Integer(reg[String(reg8Names[regParam])]))
+    reg.SP = (reg.SP-1)%65536
+    WriteMem(reg.SP, Integer(regLookup[String(reg8Names[regParam])]))
   end,
   [0xB] = function (firstByte: integer) -- PUSH r16
     local regParam = firstByte - 0xB*16
     if regParam > 3 then
       InvalidInstruction(); return
     end
-    reg.SP = (Integer(reg.SP)-2)%65536
+    reg.SP = (reg.SP-2)%65536
     if regParam == 0 then
-      WriteMem(Integer(reg.SP), Integer(reg.AL))
-      WriteMem((Integer(reg.SP)+1)%65536, Integer(reg.AH))
+      WriteMem(reg.SP, reg.AL)
+      WriteMem((reg.SP+1)%65536, reg.AH)
     elseif regParam == 1 then
-      WriteMem(Integer(reg.SP), Integer(reg.CL))
-      WriteMem((Integer(reg.SP)+1)%65536, Integer(reg.CH))
+      WriteMem(reg.SP, reg.CL)
+      WriteMem((reg.SP+1)%65536, reg.CH)
     else
-      local val = Integer(reg[String(reg16Names[regParam])])
-      WriteMem(Integer(reg.SP), val%256)
-      WriteMem((Integer(reg.SP)+1)%65536, val//256)
+      local val = Integer(regLookup[String(reg16Names[regParam])])
+      WriteMem(reg.SP, val%256)
+      WriteMem((reg.SP+1)%65536, val//256)
     end
   end,
   [0xC] = function (firstByte: integer) -- POP g8
@@ -671,8 +674,8 @@ local shortInstructions: {(integer) -> ()} = {
     if regParam > 3 then
       InvalidInstruction(); return
     end
-    reg[String(reg8Names[regParam])] = ReadMem(Integer(reg.SP))
-    reg.SP = (Integer(reg.SP)+1)%65536
+    regLookup[String(reg8Names[regParam])] = ReadMem(reg.SP)
+    reg.SP = (reg.SP+1)%65536
   end,
   [0xD] = function (firstByte: integer) -- POP r16
     local regParam = firstByte - 0xD*16
@@ -680,15 +683,15 @@ local shortInstructions: {(integer) -> ()} = {
       InvalidInstruction(); return
     end
     if regParam == 0 then
-      reg.AL = ReadMem(Integer(reg.SP))
-      reg.AH = ReadMem((Integer(reg.SP)+1)%65536)
+      reg.AL = ReadMem(reg.SP)
+      reg.AH = ReadMem((reg.SP+1)%65536)
     elseif regParam == 1 then
-      reg.CL = ReadMem(Integer(reg.SP))
-      reg.CH = ReadMem((Integer(reg.SP)+1)%65536)
+      reg.CL = ReadMem(reg.SP)
+      reg.CH = ReadMem((reg.SP+1)%65536)
     else
-      reg[String(reg16Names[regParam])] = ReadMem(Integer(reg.SP)) + 256*ReadMem((Integer(reg.SP)+1)%65536)
+      regLookup[String(reg16Names[regParam])] = ReadMem(reg.SP) + 256*ReadMem((reg.SP+1)%65536)
     end
-    reg.SP = (Integer(reg.SP)+2)%65536
+    reg.SP = (reg.SP+2)%65536
   end,
   [0xE] = function (firstByte: integer) -- ADD g8, n8
     local regParam = firstByte - 0xE*16
@@ -696,11 +699,11 @@ local shortInstructions: {(integer) -> ()} = {
     if regParam > 3 then
       InvalidInstruction(); return
     end
-    local result = Integer(reg[String(reg8Names[regParam])]) + num
+    local result = Integer(regLookup[String(reg8Names[regParam])]) + num
     reg.F = result > 256 and 2 or 0
     result = result % 256
-    reg.F = Integer(reg.F) + (result == 0 and 1 or 0)
-    reg[String(reg8Names[regParam])] = result
+    reg.F = reg.F + (result == 0 and 1 or 0)
+    regLookup[String(reg8Names[regParam])] = result
   end,
   [0xF] = function (firstByte: integer) -- ADD r16, n16
     local regParam = firstByte - 0xF*16
@@ -711,20 +714,20 @@ local shortInstructions: {(integer) -> ()} = {
       InvalidInstruction(); return
     end
     if regParam == 0 then
-      local result = 256*Integer(reg.AH)+Integer(reg.AL) + num
+      local result = 256*reg.AH+reg.AL + num
       reg.F = result > 65536 and 2 or 0
       result = result % 65536
       reg.AH, reg.AL = result//256, result%256
     elseif regParam == 1 then
-      local result = 256*Integer(reg.CH)+Integer(reg.CL) + num
+      local result = 256*reg.CH+reg.CL + num
       reg.F = result > 65536 and 2 or 0
       result = result % 65536
       reg.CH, reg.CL = result//256, result%256
     else
-      local result = 256*Integer(reg.CH)+Integer(reg.CL) + num
+      local result = 256*reg.CH+reg.CL + num
       reg.F = result > 65536 and 2 or 0
       result = result % 65536
-      reg[String(reg16Names[regParam])] = result
+      regLookup[String(reg16Names[regParam])] = result
     end
   end
 }
@@ -749,16 +752,16 @@ while powerOn do
     -- Trigger clock interrupts
     if reg.clockInterrupt and reg.IC == 0 and reg.interruptLevel == 0 then
       reg.interruptLevel = 1
-      reg.AH_, reg.AL_ = Integer(reg.IP)//256, Integer(reg.IP)%256
-      reg.IP = 2048*Integer(reg.T) + 16
+      reg.AH_, reg.AL_ = reg.IP//256, reg.IP%256
+      reg.IP = 2048*reg.T + 16
     end
   end
   -- Execute instruction
   local function f(v: integer) return ("%.2x"):format(v) end
   local function ff(v: integer) return ("%.4x"):format(v) end
-  print("AH:"..f(Integer(reg.AH)).." AL:"..f(Integer(reg.AL)).." CH:"..f(Integer(reg.CH)).." CL:"..f(Integer(reg.CL)))
-  print("SP:"..ff(Integer(reg.SP)).." BP:"..ff(Integer(reg.BP)).." F:"..f(Integer(reg.F)))
-  print("IP:"..ff(Integer(reg.IP)).." IC:"..f(Integer(reg.IC)).." il:"..tostring(Integer(reg.interruptLevel)))
+  print("AH:"..f(reg.AH).." AL:"..f(reg.AL).." CH:"..f(reg.CH).." CL:"..f(reg.CL))
+  print("SP:"..ff(reg.SP).." BP:"..ff(reg.BP).." F:"..f(reg.F))
+  print("IP:"..ff(reg.IP).." IC:"..f(reg.IC).." il:"..tostring(reg.interruptLevel))
   local currentByte = AdvanceCpu()
   print(("%.2x\n"):format(currentByte))
   local currentInstruction, currentShortInstruction = instructions[currentByte], shortInstructions[currentByte//16]
@@ -769,5 +772,5 @@ while powerOn do
   else
     InvalidInstruction()
   end
-  reg.IC = (Integer(reg.IC)+1)%256
+  reg.IC = (reg.IC+1)%256
 end
