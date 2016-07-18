@@ -1,33 +1,20 @@
 -- vim: syntax=lua:
 
 local function Integer(n: value)
-  local n = math.tointeger(n)
-  if n then
-    return n
-  else
-    error("Expected integer, got " .. type(n))
-    return 0
-  end
+  assert(type(n) == "number")
+  local i = math.tointeger(n)
+  assert(i)
+  return i
 end
 
 local function Number(n: value)
-  local n = tonumber(n)
-  if n then
-    return n
-  else
-    error("Expected number, got " .. type(n))
-    return 0.0
-  end
+  assert(type(n) == "number")
+  return n
 end
 
 local function String(str: value)
-  local str = tostring(str)
-  if str then
-    return str
-  else
-    error("Expected string, got " .. type(str))
-    return ""
-  end
+  assert(type(str) == "string")
+  return str
 end
 
 local function ToBinary(val: integer)
@@ -767,8 +754,8 @@ while powerOn do
     end
   end
   -- Execute instruction
-  local function f(v: integer) return string.format("%.2x", v) end
-  local function ff(v: integer) return string.format("%.4x", v) end
+  local function f(v: integer) return ("%.2x"):format(v) end
+  local function ff(v: integer) return ("%.4x"):format(v) end
   print("AH:"..f(Integer(reg.AH)).." AL:"..f(Integer(reg.AL)).." CH:"..f(Integer(reg.CH)).." CL:"..f(Integer(reg.CL)))
   print("SP:"..ff(Integer(reg.SP)).." BP:"..ff(Integer(reg.BP)).." F:"..f(Integer(reg.F)))
   print("IP:"..ff(Integer(reg.IP)).." IC:"..f(Integer(reg.IC)).." il:"..tostring(Integer(reg.interruptLevel)))
