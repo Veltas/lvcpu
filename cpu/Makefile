@@ -5,5 +5,5 @@ lvcpu: lua.o /usr/local/lib/liblua.a
 
 .PHONY: clean
 clean:
-	rm -rf $(patsubst %.cpp,%,$(wildcard *.cpp)) *.o
+	rm -rf lvcpu *.o
 
