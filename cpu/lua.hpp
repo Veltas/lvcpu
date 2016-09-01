@@ -37,6 +37,7 @@ namespace lua {
 	public:
 		State();
 		~State();
+		void open_libs();
 		Status load_string(const std::string &source);
 		int load_file(const std::string &source);
 		int load_file();

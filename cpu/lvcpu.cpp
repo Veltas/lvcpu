@@ -151,6 +151,7 @@ namespace {
 	Program_mode load_mode(const int argc, const char *const *const argv)
 	{
 		lua::State lua_state;
+		lua_state.open_libs();
 		if (!conf_file_load(lua_state, "lvcpu.conf") && !conf_file_load(lua_state, LVCPU_SYSCONF_PATH)) {
 			std::cerr << "Warning: did not find any configuration files";
 			std::endl(std::cerr);

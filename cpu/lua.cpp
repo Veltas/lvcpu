@@ -6,6 +6,7 @@
 #include <iostream>
 
 extern "C" {
+#include <lualib.h>
 #include <lauxlib.h>
 }
 
@@ -17,6 +18,11 @@ namespace lua {
 	State::~State()
 	{
 		::lua_close(_state);
+	}
+
+	void State::open_libs()
+	{
+		::luaL_openlibs(_state);
 	}
 
 	Status State::load_string(const std::string &source)
