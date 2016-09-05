@@ -662,7 +662,7 @@ CPU::CPU(
 			1'000'000/clock_rate - std::fmod(1'000'000/clock_rate, 1.)
 		)
 	),
-	_clock_multiplier(std::min(1., clock_rate / 1'000'000)),
+	_clock_multiplier(std::max(1., clock_rate / 1'000'000)),
 	_mem(&mem),
 	_input(&input),
 	_output(&output)
