@@ -92,6 +92,11 @@ namespace lua {
 		return ::lua_tostring(_state, stack_index);
 	}
 
+	bool State::to_boolean(const int stack_index)
+	{
+		return ::lua_toboolean(_state, stack_index);
+	}
+
 	void State::pop(const int amount)
 	{
 		::lua_pop(_state, amount);

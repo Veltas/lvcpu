@@ -6,6 +6,8 @@
 #include <stdexcept>
 
 #include "lua.hpp"
+#include "mem.hpp"
+#include "cpu.hpp"
 
 #ifndef LVCPU_SYSCONF_PATH
 	#define LVCPU_SYSCONF_PATH "/etc/lvcpu/conf"
@@ -20,6 +22,7 @@ namespace {
 		std::string input_path;
 		std::string output_path;
 		std::string bin_path;
+		bool debug_mode;
 	};
 
 	[[noreturn]] void conf_error(
@@ -137,6 +140,16 @@ namespace {
 		conf_error(name + " must be string");
 	}
 
+	bool state_read_boolean(lua::State &lua_state, const std::string &name)
+	{
+		if (lua_state.get_global(name) == lua::Type::boolean) {
+			bool result = lua_state.to_boolean(-1);
+			lua_state.pop();
+			return result;
+		}
+		conf_error(name + " must be boolean");
+	}
+
 	Program_mode state_read_mode(lua::State &lua_state)
 	{
 		Program_mode mode;
@@ -145,6 +158,7 @@ namespace {
 		mode.input_path  = state_read_string(lua_state, "input_path");
 		mode.output_path = state_read_string(lua_state, "output_path");
 		mode.bin_path    = state_read_string(lua_state, "bin_path");
+		mode.debug_mode  = state_read_boolean(lua_state, "debug_mode");
 		return std::move(mode);
 	}
 
@@ -162,24 +176,50 @@ namespace {
 		conf_run(lua_state);
 		return state_read_mode(lua_state);
 	}
+
+	void read_bin_file(Mem &system_mem, std::istream &bin_file)
+	{
+		for (std::uint16_t addr = 0; bin_file; ++addr) {
+			char input_char;
+			bin_file.get(input_char);
+			system_mem.write(addr, input_char);
+		}
+	}
 }
 
 int main(const int argc, const char *const *const argv)
 {
 	Program_mode program_mode = load_mode(argc, argv);
-	// TODO
+	Mem system_mem{static_cast<std::size_t>(program_mode.memory_size)};
 	std::ifstream binary_file{program_mode.bin_path};
-	if (!binary_file.good()) {
-		//TODO
+	if (!binary_file) {
+		std::cerr << "Could not open binary file!";
+		std::endl(std::cerr);
 		return EXIT_FAILURE;
 	}
+	read_bin_file(system_mem, binary_file);
+	binary_file.close();
 	std::ifstream input_file{program_mode.input_path};
 	std::ofstream output_file{program_mode.output_path};
-	if (!input_file.good()) {
-	//TODO
+	if (!input_file) {
+		std::cerr << "Could not open input file!";
+		std::endl(std::cerr);
 		return EXIT_FAILURE;
-	} else if (!output_file.good()) {
-	//TODO
+	} else if (!output_file) {
+		std::cerr << "Could not open output file!";
+		std::endl(std::cerr);
 		return EXIT_FAILURE;
+	}
+	CPU CPU_state{system_mem, program_mode.clock_rate, input_file, output_file};
+	if (program_mode.debug_mode) {
+		std::cerr << CPU_state;
+		std::endl(std::cerr);
+	}
+	while (CPU_state.is_on()) {
+		CPU_state.step();
+		if (program_mode.debug_mode) {
+			std::cerr << CPU_state;
+			std::endl(std::cerr);
+		}
 	}
 }

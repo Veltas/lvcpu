@@ -458,7 +458,7 @@ local instructions = {
     end
     WriteMem((reg.BP + param) % 65536, reg.AL)
   end,
-  [0x2B] = function () -- MOV [BP+i8], A
+  [0x2D] = function () -- MOV [BP+i8], A
     local param = AdvanceCpu()
     if param >= 128 then
       param = param-256
@@ -469,7 +469,7 @@ local instructions = {
   [0x26] = function () -- MOV [C], AL
     WriteMem(256*reg.CH+reg.CL, reg.AL)
   end,
-  [0x2C] = function () -- MOV [C], A
+  [0x2E] = function () -- MOV [C], A
     WriteMem(256*reg.CH+reg.CL, reg.AL)
     WriteMem((256*reg.CH+reg.CL+1) % 65526, reg.AH)
   end,

@@ -48,6 +48,7 @@ namespace lua {
 		Integer to_integer(int stack_index);
 		bool is_integer(int stack_index);
 		std::string to_string(int stack_index);
+		bool to_boolean(int stack_index);
 		void pop(int amount = 1);
 	};
 }
