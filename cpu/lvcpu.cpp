@@ -23,6 +23,7 @@ namespace {
 		std::string output_path;
 		std::string bin_path;
 		bool debug_mode;
+		bool no_io_buff;
 	};
 
 	[[noreturn]] void conf_error(
@@ -220,6 +221,9 @@ int main(const int argc, const char *const *const argv)
 		if (program_mode.debug_mode) {
 			std::cerr << CPU_state;
 			std::endl(std::cerr);
+		}
+		if (program_mode.no_io_buff) {
+			std::flush(output_file);
 		}
 	}
 }
