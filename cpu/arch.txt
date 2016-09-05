@@ -5,30 +5,28 @@ AL, AH, CL and CH refer to low and high bytes of the registers.
 There is a flags register F, 8-bit, some bits have special meanings.
 There is a stack pointer register SP, 16-bit.
 There is a stack base pointer register BP, 16-bit.
+
+All the above registers have shadow registers, which can be swapped with in an
+instruction. Interrupt code typically uses shadow registers to maintain a copy
+of state, so without disabling interrupts their state is volatile. Shadow
+registers are referred to with a tick, e.g. A', although shadow registers do
+not appear in assembly code.
+
 There is an instruction pointer IP, 16-bit.
 There is an instruction counter IC, 8-bit.
 There is an interrupt register T, 8-bit.
 
-Not listed, the CPU remembers if interrupts are currently enabled or
-disabled, if the counter interrupt is enabled or disabled, if the
-instruction step interrupt is enabled or disabled, if an interrupt
-is currently being handled.
-
-All the listed registers have shadow registers, which can be swapped
-with in an instruction. Interrupts typically use these shadow
-registers to maintain a copy of state, so without disabling
-interrupts their state is volatile. Shadow registers are referred to
-with a tick, e.g. A', although shadow registers do not appear in
-assembly code.
+Not listed, the CPU remembers if interrupts are currently enabled or disabled,
+if the counter interrupt is enabled or disabled, if the instruction step
+interrupt is enabled or disabled, if an interrupt is currently being handled.
 
 All registers are zero on boot.
 
-Every time IC increments and becomes 0, the counter zero
-interrupt is triggered if enabled.
+Every time IC increments and becomes 0, the counter zero interrupt is triggered
+if enabled.
 
-Every instruction processed outside of handling interrupts will
-trigger the step interrupt if enabled (unless a counter interrupt is
-happening).
+Every instruction processed outside of handling interrupts will trigger the
+step interrupt if enabled (unless a counter interrupt is happening).
 
 Interrupt codes are 7-bit. The interrupt handlers occupy 16 bytes each. The
 address called for an interrupt code is 16*CODE+2048*T. Note that only the low
@@ -50,11 +48,19 @@ Interrupts:
 On interrupt:
   If in interrupt mode
     Set A' to return address
-    If CODE is error and handling an interrupt already
+    If CODE is error and handling an error already
       Jump to 16*3+2048*T
     else
       Jump to 16*CODE+2048*T
   DONE
+
+Hardware interrupts are implicitly disabled while handling interrupts.
+(informative) Software interrupts will clobber saved registers in shadow set
+if triggered during an active interrupt, so should not be performed without
+special register saving mechanisms.
+
+On a third interrupt handled without corresponding RETIs, the effect is like
+using a STOP instruction.
 
 Instructions listing:
 
@@ -110,7 +116,7 @@ Sets C to C-1
 
 NEG g8
 NEG g16
-======
+=======
 Sets p1 to -p1
 070g
 071g
@@ -172,11 +178,11 @@ MOV A, [C]
 MOV [BP+i8], AL
 25ii
 MOV [BP+i8], A
-2Bii
+2Dii
 MOV [C], AL
 26
 MOV [C], A
-2C
+2E
 MOV g8, n8
 8gnn
 MOV r16, n16
@@ -192,7 +198,7 @@ Swaps registers with shadow registers
 PUSH g8
 PUSH r16
 =========
-Sets [SP] to p1 and subtracts 1 or 2 from SP
+Sets [SP] to p1 after subtracting 1 or 2 from SP
 Ag
 Br
 

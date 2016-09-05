@@ -330,20 +330,20 @@ local codeGenerators = {
         if p2 == "AL" then
           return {0x25, bpoffset}
         elseif p2 == "A" then
-					return {0x2B, bpoffset}
+					return {0x2D, bpoffset}
 				end
       elseif p1:find("^%[BP%]$") then
 				if p2 == "AL" then
 					return {0x25, 0}
 				elseif p2 == "A" then
-					return {0x2B, 0}
+					return {0x2D, 0}
 				end
       end
     elseif p1:find("^%[C%]$") then
 			if p2 == "AL" then
 				return {0x26}
 			elseif p2 == "A" then
-				return {0x2C}
+				return {0x2E}
 			end
     end
     error("Malformed MOV statement")

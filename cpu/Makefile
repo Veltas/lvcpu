@@ -1,9 +1,8 @@
-TLC = tlc
-TLC_FLAGS = -swc
+CXX = g++
+CXXFLAGS = -std=c++1z -Wall -W -pedantic -O3
 
-cpu.lua: cpu.tl
-	$(TLC) $(TLC_FLAGS) -o $@ $^
+lvcpu: lua.o mem.o cpu.o -llua -ldl
 
+.PHONY: clean
 clean:
-	rm -f cpu.lua
-
+	rm -rf lvcpu *.o
