@@ -191,7 +191,7 @@ namespace {
 int main(const int argc, const char *const *const argv)
 {
 	Program_mode program_mode = load_mode(argc, argv);
-	Mem system_mem{static_cast<std::size_t>(program_mode.memory_size)};
+	Mem system_mem;
 	std::ifstream binary_file{program_mode.bin_path};
 	if (!binary_file) {
 		std::cerr << "Could not open binary file!";

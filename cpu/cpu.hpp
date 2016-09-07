@@ -62,7 +62,7 @@ class CPU {
 	std::chrono::microseconds _clock_period;
 	unsigned _clock_multiplier;
 	unsigned _clock_multiplier_stage = 0;
-	std::chrono::steady_clock::time_point _previous_tick;
+	std::chrono::high_resolution_clock::time_point _next_tick;
 	bool _power_on = true;
 	Mem *_mem;
 	std::istream *_input;

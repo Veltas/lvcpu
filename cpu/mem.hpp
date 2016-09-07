@@ -6,12 +6,25 @@
 #include <vector>
 
 class Mem {
-	bool is_valid(std::uint16_t address);
 	std::vector<std::uint8_t> _contents;
 public:
-	Mem(std::size_t size);
-	std::uint8_t read(std::uint16_t address);
-	void         write(std::uint16_t address, std::uint8_t value);
+	inline              Mem();
+	inline std::uint8_t read(std::uint16_t address);
+	inline void         write(std::uint16_t address, std::uint8_t value);
 };
+
+Mem::Mem() :
+	_contents(0x10000, 0)
+{}
+
+std::uint8_t Mem::read(const std::uint16_t address)
+{
+	return _contents[address];
+}
+
+void Mem::write(const std::uint16_t address, const std::uint8_t value)
+{
+	_contents[address] = value;
+}
 
 #endif // LVCPU_MEM_HPP_INCLUDED

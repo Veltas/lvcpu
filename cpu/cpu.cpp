@@ -9,17 +9,24 @@
 #include <vector>
 #include <array>
 #include <unordered_set>
-#include <experimental/array>
+
+namespace {
+	inline void sometimes_yield()
+	{
+		//TODO
+	}
+}
 
 void CPU::clock_tick()
 {
 	if (_clock_multiplier_stage == _clock_multiplier - 1) {
 		_clock_multiplier_stage = 0;
-		const auto this_tick = std::chrono::steady_clock::now();
-		if (this_tick - _previous_tick < _clock_period) {
-			std::this_thread::sleep_until(_previous_tick + _clock_period);
+		auto now = std::chrono::high_resolution_clock::now();
+		while (now < _next_tick) {
+			sometimes_yield();
+			now = std::chrono::high_resolution_clock::now();
 		}
-		_previous_tick = this_tick;
+		_next_tick += _clock_period;
 	} else {
 		++_clock_multiplier_stage;
 	}
@@ -658,11 +665,15 @@ CPU::CPU(
 	std::ostream &output
 ) :
 	_clock_period(
-		static_cast<std::chrono::microseconds::rep>(
-			1'000'000/clock_rate - std::fmod(1'000'000/clock_rate, 1.)
+		std::max(
+			static_cast<std::chrono::microseconds::rep>(
+				1'000'000/clock_rate - std::fmod(1'000'000/clock_rate, 20000.)
+			),
+			std::chrono::microseconds::rep{20'000}
 		)
 	),
-	_clock_multiplier(std::max(1., clock_rate / 1'000'000)),
+	_clock_multiplier(std::max(1., clock_rate / 50)),
+	_next_tick(std::chrono::high_resolution_clock::now()),
 	_mem(&mem),
 	_input(&input),
 	_output(&output)
