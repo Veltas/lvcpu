@@ -1,6 +1,8 @@
-helloworld.bin: helloworld.asm
+%.bin: %.asm
 	lua ../asm/asm.lua $< $@
 
-.PHONY: run
-run: helloworld.bin
-	lua ../cpu/cpu.lua 100 64 /dev/stdin /dev/stdout helloworld.bin
+.PHONY: all
+all: helloworld.bin long_loop.bin
+
+# Run
+#	lua ../cpu/cpu.lua 100 64 /dev/stdin /dev/stdout helloworld.bin
