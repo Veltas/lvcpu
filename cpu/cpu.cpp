@@ -19,7 +19,9 @@ namespace {
 
 void CPU::clock_tick()
 {
-	if (_clock_multiplier_stage == _clock_multiplier - 1) {
+	if (_clock_multiplier_stage != _clock_multiplier - 1) {
+		++_clock_multiplier_stage;
+	} else {
 		_clock_multiplier_stage = 0;
 		auto now = std::chrono::high_resolution_clock::now();
 		while (now < _next_tick) {
@@ -27,8 +29,6 @@ void CPU::clock_tick()
 			now = std::chrono::high_resolution_clock::now();
 		}
 		_next_tick += _clock_period;
-	} else {
-		++_clock_multiplier_stage;
 	}
 }
 
