@@ -34,6 +34,8 @@ And you can make a label absolute, for position independent code, with the
 	.absolute kernel_call
 	kernel_call:
 
+Directives need to be on seperate lines.
+
 Parameters
 ==========
 
