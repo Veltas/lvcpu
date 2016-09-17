@@ -112,6 +112,11 @@ char Source_data::get_char(const Position &pos) const
 	return _lines.at(pos.line_n).second.at(pos.col_n);
 }
 
+const fs::path & Source_data::get_path(const Position &pos) const
+{
+	return *_lines.at(pos.line_n).first;
+}
+
 const std::string & Source_data::get_line(const std::size_t n_line) const
 {
 	return _lines.at(n_line).second;

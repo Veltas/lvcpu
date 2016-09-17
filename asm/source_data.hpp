@@ -33,6 +33,8 @@ public:
 
 	std::string         get_range(const Range &range) const;
 	char                get_char(const Position &pos) const;
+	const std::experimental::filesystem::path &
+	                    get_path(const Position &pos) const;
 	const std::string & get_line(std::size_t n_line) const;
 	std::size_t         n_lines() const;
 };
