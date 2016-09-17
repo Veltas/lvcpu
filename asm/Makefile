@@ -6,4 +6,4 @@ lvasm: source_data.o -lstdc++fs
 
 .PHONY: clean
 clean:
-	rm -rf lvcpu *.o
+	rm -rf lvasm *.o
