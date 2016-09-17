@@ -17,9 +17,8 @@ std::vector<Source_data::Source_line> Source_data::load_file(
 		!= _source_paths.end()
 	) {
 		return {};
-	} else {
-		_source_paths.emplace_back(file_path);
 	}
+	_source_paths.emplace_back(file_path);
 	const auto *const file_p = &_source_paths.back();
 	// Open file
 	std::ifstream in_file(file_path.native());
