@@ -37,7 +37,7 @@ public:
 	                         get_path(const Position &pos) const;
 	const std::string &      get_line(std::size_t line_n) const;
 	std::vector<std::string> get_source() const;
-	std::size_t              n_lines() const;
+	std::size_t              get_n_lines() const;
 };
 
 #endif // LVASM_SOURCE_DATA_HPP_INCLUDED

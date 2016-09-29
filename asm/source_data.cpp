@@ -131,7 +131,7 @@ std::vector<std::string> Source_data::get_source() const
 	return result;
 }
 
-std::size_t Source_data::n_lines() const
+std::size_t Source_data::get_n_lines() const
 {
 	return _lines.size();
 }
