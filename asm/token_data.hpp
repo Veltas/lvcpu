@@ -51,11 +51,6 @@ private:
 	std::vector<File_token> _tokens;
 
 	void tidy_comments(std::vector<std::string> &source);
-	void tidy_strings(
-		std::vector<std::string>                     &source,
-		std::unordered_map<std::size_t, std::size_t> &string_lines,
-		std::vector<Range>                           &string_ranges
-	);
 	void process_line(const std::string &line, const std::size_t line_n);
 
 public:
