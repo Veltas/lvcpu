@@ -31,12 +31,13 @@ public:
 
 	Source_data(const std::string &root_filename);
 
-	std::string         get_range(const Range &range) const;
-	char                get_char(const Position &pos) const;
+	std::string              get_range(const Range &range) const;
+	char                     get_char(const Position &pos) const;
 	const std::experimental::filesystem::path &
-	                    get_path(const Position &pos) const;
-	const std::string & get_line(std::size_t n_line) const;
-	std::size_t         n_lines() const;
+	                         get_path(const Position &pos) const;
+	const std::string &      get_line(std::size_t line_n) const;
+	std::vector<std::string> get_source() const;
+	std::size_t              n_lines() const;
 };
 
 #endif // LVASM_SOURCE_DATA_HPP_INCLUDED

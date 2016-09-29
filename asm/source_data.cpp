@@ -102,7 +102,7 @@ std::string Source_data::get_range(const Range &range) const
 			result += '\n' + _lines.at(start.line_n).second;
 		}
 		result += '\n' + get_substring(_lines.at(end.line_n).second, 0, end.col_n);
-		return std::move(result);
+		return result;
 	}
 }
 
@@ -116,9 +116,19 @@ const fs::path & Source_data::get_path(const Position &pos) const
 	return *_lines.at(pos.line_n).first;
 }
 
-const std::string & Source_data::get_line(const std::size_t n_line) const
+const std::string & Source_data::get_line(const std::size_t line_n) const
 {
-	return _lines.at(n_line).second;
+	return _lines.at(line_n).second;
+}
+
+std::vector<std::string> Source_data::get_source() const
+{
+	std::vector<std::string> result;
+	result.reserve(_lines.size());
+	for (auto &line: _lines) {
+		result.emplace_back(line.second);
+	}
+	return result;
 }
 
 std::size_t Source_data::n_lines() const
