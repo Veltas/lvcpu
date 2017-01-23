@@ -1,19 +1,20 @@
-local function Validate(obj, validationTable)
-  if type(obj) ~= "table" then
-    error("Failed validation, expected table")
-  end
-  for k, v in pairs(validationTable) do
-    if type(v) == "table" then
-      if type(obj[k]) ~= "table" then
-        error("Failed validation, expected field "..tostring(k).." to be table.")
-      end
-      Validate(obj[k], v)
-    else
-      if type(obj[k]) ~= v then
-        error("Failed validation, " .. tostring(k) .. " field should be " .. v .. " type.")
-      end
-    end
-  end
+local function Validate(obj, validationTable, recLevel)
+	recLevel = recLevel or 0
+	if type(obj) ~= "table" then
+		error("Expected table", 3 + recLevel)
+	end
+	for k, v in pairs(validationTable) do
+		if type(v) == "table" then
+			if type(obj[k]) ~= "table" then
+				error("Expected field "..tostring(k).." to be table.", 3 + recLevel)
+			end
+			Validate(obj[k], v, recLevel + 1)
+		else
+			if type(obj[k]) ~= v then
+				error(tostring(k) .. " field should be " .. v .. " type.", 3 + recLevel)
+			end
+		end
+	end
 end
 
 return Validate
