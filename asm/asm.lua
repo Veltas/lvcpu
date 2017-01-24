@@ -1,5 +1,3 @@
-require("compat53")
-
 package.path = arg[0]:gsub("[^/]*$", "") .. "?.lua;" .. package.path
 
 print = function () end
