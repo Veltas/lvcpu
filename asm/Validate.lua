@@ -11,7 +11,7 @@ local function Validate(obj, validationTable, recLevel)
 			Validate(obj[k], v, recLevel + 1)
 		else
 			if type(obj[k]) ~= v then
-				error(tostring(k) .. " field should be " .. v .. " type.", 3 + recLevel)
+				error("Field " .. tostring(k) .. " expects " .. v, 3 + recLevel)
 			end
 		end
 	end
