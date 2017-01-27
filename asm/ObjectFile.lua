@@ -13,9 +13,7 @@ local function CompileProgram(self)
 	local bytes, labels, references = self.bytes, self.labels, self.references
 	local target = 1
 	for _, sourceLine in ipairs(self.sourceFile.lines) do
-		--[[
 		xpcall(function ()
-		--]]
 			if not sourceLine.contents:find("^%s*;") then
 				if sourceLine.contents:find("^.org%s+") then
 					local orgPoint = sourceLine.contents:match("^.org%s+([%xx]+)")
@@ -42,14 +40,16 @@ print(instruction.sourceLine.contents)
 					end
 				end
 			end
-		--[[
 		end,
 		function (msg)
-			io.stderr:write("Error encountered " .. sourceLine.file .. ":" .. sourceLine.line .. ":\n")
-			io.stderr:write(msg .. "\n")
+			local explanation = "Error encountered " .. sourceLine.file .. ":" .. sourceLine.line .. ":\n"
+			explanation = explanation .. msg
+			if g_doBacktrace then
+				explanation = debug.traceback(explanation)
+			end
+			io.stderr:write(explanation .. "\n")
 			os.exit()
 		end)
-		--]]
 	end
 end
 
@@ -66,9 +66,7 @@ end
 
 local function LinkProgram(self)
 	local bytes, labels, references = self.bytes, self.labels, self.references
-	--[[
 	xpcall(function ()
-	--]]
 		for _, refPair in pairs(references) do
 			local label, target = unpack(refPair)
 			local labelPos = labels[label] or error("Referenced label "..label.." not found")
@@ -80,12 +78,14 @@ local function LinkProgram(self)
 				bytes[target+2] = math.floor(labels[label]/256)
 			end
 		end
-	--[[
 	end, function (catchMessage)
-		io.stderr:write("Link error:\n"..catchMessage.."\n")
+		local explanation = "Link error:\n" .. catchMessage
+		if g_doBacktrace then
+			explanation = debug.traceback(explanation)
+		end
+		io.stderr:write(explanation .. "\n")
 		os.exit(1)
 	end)
-	--]]
 end
 
 function C_ObjectFile:WriteBinary(filename)
