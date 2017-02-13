@@ -1,8 +1,8 @@
 local Validate = require("Validate")
 
-local C_SourceLine = require("SourceLine")
+local SourceLine = require("SourceLine")
 
-local C_SourceFile = {
+local SourceFile = {
 	rootFilename = nil,
 	lines = nil
 }
@@ -16,7 +16,7 @@ local function LoadFile(filename, sourceLines, insertIndex)
 			local includedFile = line:match("^%.include%s+\"([^\"]+)\"")
 			_, currentIndex = LoadFile(includedFile, sourceLines, currentIndex)
 		elseif not line:find("^%s*$") then
-			local sourceLine = C_SourceLine:New{
+			local sourceLine = SourceLine:New{
 				file = filename,
 				line = lineNumber,
 				contents = line
@@ -29,7 +29,7 @@ local function LoadFile(filename, sourceLines, insertIndex)
 	return insertIndex, currentIndex
 end
 
-function C_SourceFile:New(obj)
+function SourceFile:New(obj)
 	Validate(obj, {rootFilename = "string"})
 	self.__index = self
 	setmetatable(obj, self)
@@ -38,4 +38,4 @@ function C_SourceFile:New(obj)
 	return obj
 end
 
-return C_SourceFile
+return SourceFile
