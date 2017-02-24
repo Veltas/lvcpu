@@ -1,6 +1,6 @@
 local Validate = require("Validate")
 
-local C_Instruction = {
+local Instruction = {
 	sourceLine = nil,
 	type = nil,
 	p1 = nil,
@@ -8,7 +8,7 @@ local C_Instruction = {
 	code = nil
 }
 
-function C_Instruction.New(class, self)
+function Instruction.New(class, self)
 	Validate(self, {sourceLine = "table"})
 	setmetatable(self, {__index = class})
 	print(self)
@@ -518,7 +518,7 @@ local function LineToParams2(str)
 	return str:match("^%s+%u%u+%s+(%S+)%s*,%s*(%S+)")
 end
 
-function C_Instruction:LoadFromLine(references)
+function Instruction:LoadFromLine(references)
 print(self.type)
 	self.type = LineToInstructionType(self.sourceLine.contents)
 	if not self.type then
@@ -535,4 +535,4 @@ print(self.type)
 	return true
 end
 
-return C_Instruction
+return Instruction

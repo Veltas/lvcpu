@@ -25,11 +25,11 @@ for i, str in ipairs(arg) do
 end
 
 xpcall(function()
-	local C_SourceFile = require("SourceFile")
-	local C_ObjectFile = require("ObjectFile")
+	local SourceFile = require("SourceFile")
+	local ObjectFile = require("ObjectFile")
 
-	local sourceFile = C_SourceFile:New{rootFilename = arg[1]}
-	local objectFile = C_ObjectFile:New{sourceFile = sourceFile}
+	local sourceFile = SourceFile:New{rootFilename = arg[1]}
+	local objectFile = ObjectFile:New{sourceFile = sourceFile}
 	objectFile:WriteBinary(arg[2])
 end,
 function(err)

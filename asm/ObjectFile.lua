@@ -1,8 +1,8 @@
 local Validate = require("Validate")
 
-local C_Instruction = require("Instruction")
+local Instruction = require("Instruction")
 
-local C_ObjectFile = {
+local ObjectFile = {
 	sourceFile = nil,
 	bytes = nil,
 	labels = nil,
@@ -23,7 +23,7 @@ local function CompileProgram(self)
 					local label = sourceLine.contents:match("^([_%a][_%w]*):")
 					labels[label] = target-1
 				else
-					local instruction = C_Instruction:New{sourceLine = sourceLine}
+					local instruction = Instruction:New{sourceLine = sourceLine}
 print(instruction.sourceLine.contents)
 					if instruction:LoadFromLine(references) then
 						if references[instruction] then
@@ -53,7 +53,7 @@ print(instruction.sourceLine.contents)
 	end
 end
 
-function C_ObjectFile:New(obj)
+function ObjectFile:New(obj)
 	Validate(obj, {sourceFile = "table"})
 	self.__index = self
 	setmetatable(obj, self)
@@ -88,7 +88,7 @@ local function LinkProgram(self)
 	end)
 end
 
-function C_ObjectFile:WriteBinary(filename)
+function ObjectFile:WriteBinary(filename)
 	LinkProgram(self)
 	local outFile = io.open(filename, "wb") or error("Failed to open "..filename)
 	for i = 1, table.maxn(self.bytes) do
@@ -99,4 +99,4 @@ function C_ObjectFile:WriteBinary(filename)
 	outFile:close()
 end
 
-return C_ObjectFile
+return ObjectFile
