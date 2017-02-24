@@ -1,6 +1,6 @@
 package.path = arg[0]:gsub("[^/]*$", "") .. "?.lua;" .. package.path
 
-print = function () end
+print = function() end
 unpack = table.unpack
 
 function table.maxn(t)

@@ -6,11 +6,10 @@ local SourceLine = {
 	contents = nil
 }
 
-function SourceLine:New(obj)
-	Validate(obj, {file = "string", line = "number", contents = "string"})
-	setmetatable(obj, self)
-	self.__index = self
-	return obj
+function SourceLine.New(class, self)
+	Validate(self, {file = "string", line = "number", contents = "string"})
+	setmetatable(self, {__index = class})
+	return self
 end
 
 return SourceLine
