@@ -620,100 +620,96 @@ void CPU::byte_op_stop()
 	_power_on = false;
 }
 
-void CPU::nibble_op_mov(const std::uint8_t op_nibble, const std::uint8_t op_param)
+void CPU::nibble_op_mov_g8(const std::uint8_t op_param)
 {
-	if (op_nibble == 0x8) {
-		const auto param = instruction_fetch();
-		if (is_g8(op_param)) {
-			set_g8(op_param, param);
-		} else {
-			bad_parameter();
-		}
-	} else if (op_nibble == 0x9) {
-		const auto p1 = instruction_fetch();
-		const auto p2 = instruction_fetch();
-		if (is_r16(op_param)) {
-			get_r16(op_param) = make_word(p1, p2);
-		} else {
-			bad_parameter();
-		}
+	const auto param = instruction_fetch();
+	if (is_g8(op_param)) {
+		set_g8(op_param, param);
 	} else {
-		throw std::domain_error{"nibble_op_mov() has incorrect op nibble"};
+		bad_parameter();
 	}
 }
 
-void CPU::nibble_op_push(const std::uint8_t op_nibble, const std::uint8_t op_param)
+void CPU::nibble_op_mov_r16(const std::uint8_t op_param)
 {
-	if (op_nibble == 0xA) {
-		if (is_g8(op_param)) {
-			_primary.sp -= 1;
-			_mem->write(_primary.sp, get_g8(op_param));
-		} else {
-			bad_parameter();
-		}
-	} else if (op_nibble == 0xB) {
-		if (is_r16(op_param)) {
-			_primary.sp -= 2;
-			const auto &reg = get_r16(op_param);
-			_mem->write(_primary.sp, get_low_byte(reg));
-			_mem->write(_primary.sp + 1, get_high_byte(reg));
-		} else {
-			bad_parameter();
-		}
+	const auto p1 = instruction_fetch();
+	const auto p2 = instruction_fetch();
+	if (is_r16(op_param)) {
+		get_r16(op_param) = make_word(p1, p2);
 	} else {
-		throw std::domain_error{"nibble_op_push() has incorrect op nibble"};
+		bad_parameter();
 	}
 }
 
-void CPU::nibble_op_pop(const std::uint8_t op_nibble, const std::uint8_t op_param)
+void CPU::nibble_op_push_g8(const std::uint8_t op_param)
 {
-	if (op_nibble == 0xC) {
-		if (is_g8(op_param)) {
-			set_g8(op_param, _mem->read(_primary.sp));
-			_primary.sp += 1;
-		} else {
-			bad_parameter();
-		}
-	} else if (op_nibble == 0xD) {
-		if (is_r16(op_param)) {
-			get_r16(op_param) = make_word(
-				_mem->read(_primary.sp),
-				_mem->read(_primary.sp + 1)
-			);
-			_primary.sp += 2;
-		} else {
-			bad_parameter();
-		}
+	if (is_g8(op_param)) {
+		_primary.sp -= 1;
+		_mem->write(_primary.sp, get_g8(op_param));
 	} else {
-		throw std::domain_error{"nibble_op_pop() has incorrect op nibble"};
+		bad_parameter();
 	}
 }
 
-void CPU::nibble_op_add(const std::uint8_t op_nibble, const std::uint8_t op_param)
+void CPU::nibble_op_push_r16(const std::uint8_t op_param)
 {
-	if (op_nibble == 0xE) {
-		if (is_g8(op_param)) {
-			const auto value = instruction_fetch();
-			set_carry_flag(n8_carry(get_g8(op_param), value));
-			set_g8(op_param, get_g8(op_param) + value);
-			set_zero_flag(get_g8(op_param) == 0);
-		} else {
-			bad_parameter();
-		}
-	} else if (op_nibble == 0xF) {
-		if (is_r16(op_param)) {
-			const auto value_low = instruction_fetch();
-			const auto value_high = instruction_fetch();
-			const auto value = make_word(value_low, value_high);
-			auto &reg = get_r16(op_param);
-			set_carry_flag(n16_carry(get_r16(op_param), value));
-			reg += value;
-			set_zero_flag(reg == 0);
-		} else {
-			bad_parameter();
-		}
+	if (is_r16(op_param)) {
+		_primary.sp -= 2;
+		const auto &reg = get_r16(op_param);
+		_mem->write(_primary.sp, get_low_byte(reg));
+		_mem->write(_primary.sp + 1, get_high_byte(reg));
 	} else {
-		throw std::domain_error{"nibble_op_add() has incorrect op nibble"};
+		bad_parameter();
+	}
+}
+
+void CPU::nibble_op_pop_g8(const std::uint8_t op_param)
+{
+	if (is_g8(op_param)) {
+		set_g8(op_param, _mem->read(_primary.sp));
+		_primary.sp += 1;
+	} else {
+		bad_parameter();
+	}
+}
+
+void CPU::nibble_op_pop_r16(const std::uint8_t op_param)
+{
+	if (is_r16(op_param)) {
+		get_r16(op_param) = make_word(
+			_mem->read(_primary.sp),
+			_mem->read(_primary.sp + 1)
+		);
+		_primary.sp += 2;
+	} else {
+		bad_parameter();
+	}
+}
+
+void CPU::nibble_op_add_g8(const std::uint8_t op_param)
+{
+	if (is_g8(op_param)) {
+		const auto value = instruction_fetch();
+		set_carry_flag(n8_carry(get_g8(op_param), value));
+		set_g8(op_param, get_g8(op_param) + value);
+		set_zero_flag(get_g8(op_param) == 0);
+	} else {
+		bad_parameter();
+	}
+}
+
+void CPU::nibble_op_add_r16(const std::uint8_t op_param)
+{
+	if (is_r16(op_param)) {
+		const auto value_low = instruction_fetch();
+		const auto value_high = instruction_fetch();
+		const auto value = make_word(value_low, value_high);
+		auto &reg = get_r16(op_param);
+		set_carry_flag(n16_carry(get_r16(op_param), value));
+		reg += value;
+		set_zero_flag(reg == 0);
+	} else {
+		bad_parameter();
 	}
 }
 
@@ -742,6 +738,188 @@ CPU::CPU(
 	}
 }
 
+void CPU::byte_op(const std::uint8_t op_code)
+{
+	switch(op_code) {
+	case 0x00:
+		byte_op_nop();
+		break;
+	case 0x01:
+		byte_op_add_g8();
+		break;
+	case 0x02:
+		byte_op_add_r16();
+		break;
+	case 0x03:
+		byte_op_sub_g8();
+		break;
+	case 0x04:
+		byte_op_sub_r16();
+		break;
+	case 0x05:
+		byte_op_inc();
+		break;
+	case 0x06:
+		byte_op_dec();
+		break;
+	case 0x07:
+		byte_op_neg();
+		break;
+	case 0x08:
+		byte_op_and();
+		break;
+	case 0x09:
+		byte_op_or();
+		break;
+	case 0x0A:
+		byte_op_xor();
+		break;
+	case 0x0B:
+		byte_op_shift();
+		break;
+	case 0x0C:
+		byte_op_rotate();
+		break;
+	case 0x0D:
+		byte_op_mul();
+		break;
+	case 0x20:
+		byte_op_mov_g8_g8();
+		break;
+	case 0x21:
+		byte_op_mov_r16_r16();
+		break;
+	case 0x22:
+		byte_op_mov_getmisc();
+		break;
+	case 0x23:
+		byte_op_mov_al_bp_ptr();
+		break;
+	case 0x24:
+		byte_op_mov_al_c_ptr();
+		break;
+	case 0x25:
+		byte_op_mov_bp_ptr_al();
+		break;
+	case 0x26:
+		byte_op_mov_c_ptr_al();
+		break;
+	case 0x28:
+		byte_op_swp();
+		break;
+	case 0x29:
+		byte_op_mov_a_bp_ptr();
+		break;
+	case 0x2A:
+		byte_op_mov_a_c_ptr();
+		break;
+	case 0x2B:
+		byte_op_mov_al_t();
+		break;
+	case 0x2C:
+		byte_op_mov_t_al();
+		break;
+	case 0x2D:
+		byte_op_mov_bp_ptr_a();
+		break;
+	case 0x2E:
+		byte_op_mov_c_ptr_a();
+		break;
+	case 0x40:
+		byte_op_jp();
+		break;
+	case 0x41:
+		byte_op_jz();
+		break;
+	case 0x42:
+		byte_op_jc();
+		break;
+	case 0x43:
+		byte_op_jnz();
+		break;
+	case 0x44:
+		byte_op_jnc();
+		break;
+	case 0x48:
+		byte_op_call_n16();
+		break;
+	case 0x49:
+		byte_op_call_a();
+		break;
+	case 0x4A:
+		byte_op_interrupt();
+		break;
+	case 0x4B:
+		byte_op_ret();
+		break;
+	case 0x4C:
+		byte_op_reti();
+		break;
+	case 0x50:
+		byte_op_eih();
+		break;
+	case 0x51:
+		byte_op_dih();
+		break;
+	case 0x52:
+		byte_op_eci();
+		break;
+	case 0x53:
+		byte_op_dci();
+		break;
+	case 0x54:
+		byte_op_esi();
+		break;
+	case 0x55:
+		byte_op_dsi();
+		break;
+	case 0x60:
+		byte_op_in();
+		break;
+	case 0x61:
+		byte_op_out();
+		break;
+	case 0x70:
+		byte_op_stop();
+		break;
+	default:
+		bad_op_code();
+		break;
+	}
+}
+
+void CPU::nibble_op(const std::uint8_t op_nibble, const std::uint8_t op_param)
+{
+	switch (op_nibble) {
+	case 0x8:
+		nibble_op_mov_g8(op_param);
+		break;
+	case 0x9:
+		nibble_op_mov_r16(op_param);
+		break;
+	case 0xA:
+		nibble_op_push_g8(op_param);
+		break;
+	case 0xB:
+		nibble_op_push_r16(op_param);
+		break;
+	case 0xC:
+		nibble_op_pop_g8(op_param);
+		break;
+	case 0xD:
+		nibble_op_pop_r16(op_param);
+		break;
+	case 0xE:
+		nibble_op_add_g8(op_param);
+		break;
+	case 0xF:
+		nibble_op_add_r16(op_param);
+		break;
+	default:
+		throw std::domain_error{"select_nibble_op() called with bad op code"};
+	}
+}
+
 void CPU::step()
 {
 	if (_clock_interrupt && _ic == 0) {
@@ -749,169 +927,9 @@ void CPU::step()
 	}
 	const auto op_code = instruction_fetch();
 	if (op_code <= 0x70) {
-		switch(op_code) {
-		case 0x00:
-			byte_op_nop();
-			break;
-		case 0x01:
-			byte_op_add_g8();
-			break;
-		case 0x02:
-			byte_op_add_r16();
-			break;
-		case 0x03:
-			byte_op_sub_g8();
-			break;
-		case 0x04:
-			byte_op_sub_r16();
-			break;
-		case 0x05:
-			byte_op_inc();
-			break;
-		case 0x06:
-			byte_op_dec();
-			break;
-		case 0x07:
-			byte_op_neg();
-			break;
-		case 0x08:
-			byte_op_and();
-			break;
-		case 0x09:
-			byte_op_or();
-			break;
-		case 0x0A:
-			byte_op_xor();
-			break;
-		case 0x0B:
-			byte_op_shift();
-			break;
-		case 0x0C:
-			byte_op_rotate();
-			break;
-		case 0x0D:
-			byte_op_mul();
-			break;
-		case 0x20:
-			byte_op_mov_g8_g8();
-			break;
-		case 0x21:
-			byte_op_mov_r16_r16();
-			break;
-		case 0x22:
-			byte_op_mov_getmisc();
-			break;
-		case 0x23:
-			byte_op_mov_al_bp_ptr();
-			break;
-		case 0x24:
-			byte_op_mov_al_c_ptr();
-			break;
-		case 0x25:
-			byte_op_mov_bp_ptr_al();
-			break;
-		case 0x26:
-			byte_op_mov_c_ptr_al();
-			break;
-		case 0x28:
-			byte_op_swp();
-			break;
-		case 0x29:
-			byte_op_mov_a_bp_ptr();
-			break;
-		case 0x2A:
-			byte_op_mov_a_c_ptr();
-			break;
-		case 0x2B:
-			byte_op_mov_al_t();
-			break;
-		case 0x2C:
-			byte_op_mov_t_al();
-			break;
-		case 0x2D:
-			byte_op_mov_bp_ptr_a();
-			break;
-		case 0x2E:
-			byte_op_mov_c_ptr_a();
-			break;
-		case 0x40:
-			byte_op_jp();
-			break;
-		case 0x41:
-			byte_op_jz();
-			break;
-		case 0x42:
-			byte_op_jc();
-			break;
-		case 0x43:
-			byte_op_jnz();
-			break;
-		case 0x44:
-			byte_op_jnc();
-			break;
-		case 0x48:
-			byte_op_call_n16();
-			break;
-		case 0x49:
-			byte_op_call_a();
-			break;
-		case 0x4A:
-			byte_op_interrupt();
-			break;
-		case 0x4B:
-			byte_op_ret();
-			break;
-		case 0x4C:
-			byte_op_reti();
-			break;
-		case 0x50:
-			byte_op_eih();
-			break;
-		case 0x51:
-			byte_op_dih();
-			break;
-		case 0x52:
-			byte_op_eci();
-			break;
-		case 0x53:
-			byte_op_dci();
-			break;
-		case 0x54:
-			byte_op_esi();
-			break;
-		case 0x55:
-			byte_op_dsi();
-			break;
-		case 0x60:
-			byte_op_in();
-			break;
-		case 0x61:
-			byte_op_out();
-			break;
-		case 0x70:
-			byte_op_stop();
-			break;
-		default:
-			bad_op_code();
-			break;
-		}
+		byte_op(op_code);
 	} else {
-		const auto op_nibble = get_high_nibble(op_code);
-		const auto op_param = get_low_nibble(op_code);
-		switch (op_nibble) {
-		case 0x8: case 0x9:
-			nibble_op_mov(op_nibble, op_param);
-			break;
-		case 0xA: case 0xB:
-			nibble_op_push(op_nibble, op_param);
-			break;
-		case 0xC: case 0xD:
-			nibble_op_pop(op_nibble, op_param);
-			break;
-		case 0xE: case 0xF:
-			nibble_op_add(op_nibble, op_param);
-			break;
-		}
+		nibble_op(get_high_nibble(op_code), get_low_nibble(op_code));
 	}
 	++_ic;
 }

@@ -74,10 +74,17 @@ class CPU {
 	void byte_op_out();
 	void byte_op_stop();
 
-	void nibble_op_mov(std::uint8_t op_nibble, std::uint8_t op_param);
-	void nibble_op_push(std::uint8_t op_nibble, std::uint8_t op_param);
-	void nibble_op_pop(std::uint8_t op_nibble, std::uint8_t op_param);
-	void nibble_op_add(std::uint8_t op_nibble, std::uint8_t op_param);
+	void nibble_op_mov_g8(std::uint8_t op_param);
+	void nibble_op_mov_r16(std::uint8_t op_param);
+	void nibble_op_push_g8(std::uint8_t op_param);
+	void nibble_op_push_r16(std::uint8_t op_param);
+	void nibble_op_pop_g8(std::uint8_t op_param);
+	void nibble_op_pop_r16(std::uint8_t op_param);
+	void nibble_op_add_g8(std::uint8_t op_param);
+	void nibble_op_add_r16(std::uint8_t op_param);
+
+	void byte_op(std::uint8_t op_code);
+	void nibble_op(std::uint8_t op_nibble, std::uint8_t op_param);
 
 	struct General_registers {
 		std::uint16_t a = 0, c = 0;
