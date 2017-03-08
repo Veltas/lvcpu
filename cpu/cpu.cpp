@@ -9,6 +9,7 @@
 #include <vector>
 #include <array>
 #include <unordered_set>
+#include <unordered_map>
 
 namespace {
 	inline void sometimes_yield()
@@ -199,65 +200,68 @@ namespace {
 	}
 }
 
-void CPU::byte_op_add(const std::uint8_t op_code)
+void CPU::byte_op_add_g8()
 {
 	const auto params = instruction_fetch();
 	const auto p1_code = get_high_nibble(params);
 	const auto p2_code = get_low_nibble(params);
-	if (op_code == 0x01) {
-		if (is_g8(p1_code) && is_g8(p2_code)) {
-			set_carry_flag(n8_carry(get_g8(p1_code), get_g8(p2_code)));
-			set_g8(p1_code, get_g8(p1_code) + get_g8(p2_code));
-			set_zero_flag(get_g8(p1_code) == 0);
-		} else {
-			bad_parameter();
-		}
-	} else if (op_code == 0x02) {
-		if (is_r16(p1_code) && is_r16(p2_code)) {
-			set_carry_flag(n16_carry(get_r16(p1_code), get_r16(p2_code)));
-			get_r16(p1_code) += get_r16(p2_code);
-			set_zero_flag(get_r16(p1_code) == 0);
-		} else {
-			bad_parameter();
-		}
+	if (is_g8(p1_code) && is_g8(p2_code)) {
+		set_carry_flag(n8_carry(get_g8(p1_code), get_g8(p2_code)));
+		set_g8(p1_code, get_g8(p1_code) + get_g8(p2_code));
+		set_zero_flag(get_g8(p1_code) == 0);
 	} else {
-		std::domain_error{"byte_op_add() called with wrong op code"};
+		bad_parameter();
 	}
 }
 
-void CPU::byte_op_sub(const std::uint8_t op_code)
+void CPU::byte_op_add_r16()
 {
 	const auto params = instruction_fetch();
 	const auto p1_code = get_high_nibble(params);
 	const auto p2_code = get_low_nibble(params);
-	if (op_code == 0x03) {
-		if (is_g8(p1_code) && is_g8(p2_code)) {
-			set_g8(p1_code, get_g8(p1_code) - get_g8(p2_code));
-			set_zero_flag(get_g8(p1_code) == 0);
-		} else {
-			bad_parameter();
-		}
-	} else if (op_code == 0x04) {
-		if (is_r16(p1_code) && is_r16(p2_code)) {
-			get_r16(p1_code) -= get_r16(p2_code);
-			set_zero_flag(get_r16(p1_code) == 0);
-		} else {
-			bad_parameter();
-		}
+	if (is_r16(p1_code) && is_r16(p2_code)) {
+		set_carry_flag(n16_carry(get_r16(p1_code), get_r16(p2_code)));
+		get_r16(p1_code) += get_r16(p2_code);
+		set_zero_flag(get_r16(p1_code) == 0);
 	} else {
-		std::domain_error{"byte_op_sub() called with wrong op code"};
+		bad_parameter();
 	}
 }
 
-void CPU::byte_op_inc_dec(const std::uint8_t op_code)
+void CPU::byte_op_sub_g8()
 {
-	if (op_code == 0x05) {
-		++_primary.c;
-	} else if (op_code == 0x06) {
-		--_primary.c;
+	const auto params = instruction_fetch();
+	const auto p1_code = get_high_nibble(params);
+	const auto p2_code = get_low_nibble(params);
+	if (is_g8(p1_code) && is_g8(p2_code)) {
+		set_g8(p1_code, get_g8(p1_code) - get_g8(p2_code));
+		set_zero_flag(get_g8(p1_code) == 0);
 	} else {
-		std::domain_error{"byte_op_inc_dec() called with wrong op code"};
+		bad_parameter();
 	}
+}
+
+void CPU::byte_op_sub_r16()
+{
+	const auto params = instruction_fetch();
+	const auto p1_code = get_high_nibble(params);
+	const auto p2_code = get_low_nibble(params);
+	if (is_r16(p1_code) && is_r16(p2_code)) {
+		get_r16(p1_code) -= get_r16(p2_code);
+		set_zero_flag(get_r16(p1_code) == 0);
+	} else {
+		bad_parameter();
+	}
+}
+
+void CPU::byte_op_inc()
+{
+	++_primary.c;
+}
+
+void CPU::byte_op_dec()
+{
+	--_primary.c;
 }
 
 void CPU::byte_op_neg()
@@ -282,7 +286,7 @@ void CPU::byte_op_neg()
 	}
 }
 
-void CPU::byte_op_bin(const std::uint8_t op_code)
+void CPU::byte_op_and()
 {
 	const auto params = instruction_fetch();
 	const auto p1_code = get_high_nibble(params);
@@ -290,41 +294,68 @@ void CPU::byte_op_bin(const std::uint8_t op_code)
 	if (is_g8(p1_code) && is_g8(p2_code)) {
 		const auto p1 = get_g8(p1_code);
 		const auto p2 = get_g8(p2_code);
-		if (op_code == 0x08) {
-			set_g8(p1_code, p1 & p2);
-		} else if (op_code == 0x09) {
-			set_g8(p1_code, p1 | p2);
-		} else if (op_code == 0x0A) {
-			set_g8(p1_code, p1 ^ p2);
-		} else {
-			throw std::domain_error{"byte_op_bin() called with incorrect op code"};
-		}
+		set_g8(p1_code, p1 & p2);
 	} else {
 		bad_parameter();
 	}
 }
 
-void CPU::byte_op_shift(const std::uint8_t op_code)
+void CPU::byte_op_or()
+{
+	const auto params = instruction_fetch();
+	const auto p1_code = get_high_nibble(params);
+	const auto p2_code = get_low_nibble(params);
+	if (is_g8(p1_code) && is_g8(p2_code)) {
+		const auto p1 = get_g8(p1_code);
+		const auto p2 = get_g8(p2_code);
+		set_g8(p1_code, p1 | p2);
+	} else {
+		bad_parameter();
+	}
+}
+
+void CPU::byte_op_xor()
+{
+	const auto params = instruction_fetch();
+	const auto p1_code = get_high_nibble(params);
+	const auto p2_code = get_low_nibble(params);
+	if (is_g8(p1_code) && is_g8(p2_code)) {
+		const auto p1 = get_g8(p1_code);
+		const auto p2 = get_g8(p2_code);
+		set_g8(p1_code, p1 ^ p2);
+	} else {
+		bad_parameter();
+	}
+}
+
+void CPU::byte_op_shift()
 {
 	const auto params = instruction_fetch();
 	const auto p1_code = get_high_nibble(params);
 	const auto p2_val = get_low_nibble(params);
 	if (is_g8(p1_code)) {
 		const auto p1 = get_g8(p1_code);
-		if (op_code == 0x0B) {
-			if (p2_val > 7) {
-				bad_parameter();
-			} else {
-				set_g8(p1_code, (p1 << p2_val) | (p1 >> (8 - p2_val)));
-			}
-		} else if (op_code == 0x0C) {
-			if (p2_val > 7) {
-				set_g8(p1_code, p1 >> (16 - p2_val));
-			} else {
-				set_g8(p1_code, p1 << p2_val);
-			}
+		if (p2_val > 7) {
+			bad_parameter();
 		} else {
-			throw std::domain_error{"byte_op_shift() called with incorrect op code"};
+			set_g8(p1_code, (p1 << p2_val) | (p1 >> (8 - p2_val)));
+		}
+	} else {
+		bad_parameter();
+	}
+}
+
+void CPU::byte_op_rotate()
+{
+	const auto params = instruction_fetch();
+	const auto p1_code = get_high_nibble(params);
+	const auto p2_val = get_low_nibble(params);
+	if (is_g8(p1_code)) {
+		const auto p1 = get_g8(p1_code);
+		if (p2_val > 7) {
+			set_g8(p1_code, p1 >> (16 - p2_val));
+		} else {
+			set_g8(p1_code, p1 << p2_val);
 		}
 	} else {
 		bad_parameter();
@@ -347,102 +378,119 @@ void CPU::byte_op_mul()
 	}
 }
 
-void CPU::byte_op_mov(const std::uint8_t op_code)
+void CPU::byte_op_mov_g8_g8()
 {
-	switch (op_code) {
-		case 0x20: {
-			const auto params = instruction_fetch();
-			const auto p1_code = get_high_nibble(params);
-			const auto p2_code = get_low_nibble(params);
-			if (is_g8(p1_code) && is_g8(p2_code)) {
-				set_g8(p1_code, get_g8(p2_code));
-			} else {
-				bad_parameter();
-			}
-		} break;
-		case 0x21: {
-			const auto params = instruction_fetch();
-			const auto p1_code = get_high_nibble(params);
-			const auto p2_code = get_low_nibble(params);
-			if (is_r16(p1_code) && is_r16(p2_code)) {
-				get_r16(p1_code) = get_r16(p2_code);
-			} else {
-				bad_parameter();
-			}
-		} break;
-		case 0x22: {
-			const auto param = instruction_fetch();
-			if (param == 0x01) {
-				_primary.a = make_word(_primary.f, get_high_byte(_primary.a));
-			} else if (param == 0x02) {
-				_primary.a = make_word(_ic, get_high_byte(_primary.a));
-			} else if (param == 0x03) {
-				_primary.a = _ip;
-			} else {
-				bad_parameter();
-			}
-		} break;
-		case 0x23: {
-			const auto value = instruction_fetch();
-			_primary.a = make_word(
-				_mem->read(_primary.bp + static_cast<std::int8_t>(value)),
-				get_high_byte(_primary.a)
-			);
-		} break;
-		case 0x24: {
-			_primary.a = make_word(
-				_mem->read(_primary.c),
-				get_high_byte(_primary.a)
-			);
-		} break;
-		case 0x25: {
-			const auto value = instruction_fetch();
-			_mem->write(
-				_primary.bp + static_cast<std::int8_t>(value),
-				get_low_byte(_primary.a)
-			);
-		} break;
-		case 0x26: {
-			_mem->write(_primary.c, get_low_byte(_primary.a));
-		} break;
-		case 0x29: {
-			const auto value = instruction_fetch();
-			_primary.a = make_word(
-				_mem->read(_primary.bp + static_cast<std::int8_t>(value)),
-				_mem->read(_primary.bp + static_cast<std::int8_t>(value) + 1)
-			);
-		} break;
-		case 0x2A: {
-			_primary.a = make_word(
-				_mem->read(_primary.c),
-				_mem->read(_primary.c + 1)
-			);
-		} break;
-		case 0x2B: {
-			_primary.a = make_word(_t, get_high_byte(_primary.a));
-		} break;
-		case 0x2C: {
-			_t = get_low_byte(_primary.a);
-		} break;
-		case 0x2D: {
-			const auto value = instruction_fetch();
-			_mem->write(
-				_primary.bp + static_cast<std::int8_t>(value),
-				get_low_byte(_primary.a)
-			);
-			_mem->write(
-				_primary.bp + static_cast<std::int8_t>(value) + 1,
-				get_high_byte(_primary.a)
-			);
-		} break;
-		case 0x2E: {
-			_mem->write(_primary.c, get_low_byte(_primary.a));
-			_mem->write(_primary.c + 1, get_high_byte(_primary.a));
-		} break;
-		default: {
-			throw std::domain_error{"byte_op_mov() called with bad op code"};
-		} break;
+	const auto params = instruction_fetch();
+	const auto p1_code = get_high_nibble(params);
+	const auto p2_code = get_low_nibble(params);
+	if (is_g8(p1_code) && is_g8(p2_code)) {
+		set_g8(p1_code, get_g8(p2_code));
+	} else {
+		bad_parameter();
 	}
+}
+
+void CPU::byte_op_mov_r16_r16()
+{
+	const auto params = instruction_fetch();
+	const auto p1_code = get_high_nibble(params);
+	const auto p2_code = get_low_nibble(params);
+	if (is_r16(p1_code) && is_r16(p2_code)) {
+		get_r16(p1_code) = get_r16(p2_code);
+	} else {
+		bad_parameter();
+	}
+}
+
+void CPU::byte_op_mov_getmisc()
+{
+	const auto param = instruction_fetch();
+	if (param == 0x01) {
+		_primary.a = make_word(_primary.f, get_high_byte(_primary.a));
+	} else if (param == 0x02) {
+		_primary.a = make_word(_ic, get_high_byte(_primary.a));
+	} else if (param == 0x03) {
+		_primary.a = _ip;
+	} else {
+		bad_parameter();
+	}
+}
+
+void CPU::byte_op_mov_al_bp_ptr()
+{
+	const auto value = instruction_fetch();
+	_primary.a = make_word(
+		_mem->read(_primary.bp + static_cast<std::int8_t>(value)),
+		get_high_byte(_primary.a)
+	);
+}
+
+void CPU::byte_op_mov_al_c_ptr()
+{
+	_primary.a = make_word(
+		_mem->read(_primary.c),
+		get_high_byte(_primary.a)
+	);
+}
+
+void CPU::byte_op_mov_bp_ptr_al()
+{
+	const auto value = instruction_fetch();
+	_mem->write(
+		_primary.bp + static_cast<std::int8_t>(value),
+		get_low_byte(_primary.a)
+	);
+}
+
+void CPU::byte_op_mov_c_ptr_al()
+{
+	_mem->write(_primary.c, get_low_byte(_primary.a));
+}
+
+void CPU::byte_op_mov_a_bp_ptr()
+{
+	const auto value = instruction_fetch();
+	_primary.a = make_word(
+		_mem->read(_primary.bp + static_cast<std::int8_t>(value)),
+		_mem->read(_primary.bp + static_cast<std::int8_t>(value) + 1)
+	);
+}
+
+void CPU::byte_op_mov_a_c_ptr()
+{
+	_primary.a = make_word(
+		_mem->read(_primary.c),
+		_mem->read(_primary.c + 1)
+	);
+}
+
+void CPU::byte_op_mov_al_t()
+{
+	_primary.a = make_word(_t, get_high_byte(_primary.a));
+}
+
+void CPU::byte_op_mov_t_al()
+{
+	_t = get_low_byte(_primary.a);
+}
+
+void CPU::byte_op_mov_bp_ptr_a()
+{
+	const auto value = instruction_fetch();
+	_mem->write(
+		_primary.bp + static_cast<std::int8_t>(value),
+		get_low_byte(_primary.a)
+	);
+	_mem->write(
+		_primary.bp + static_cast<std::int8_t>(value) + 1,
+		get_high_byte(_primary.a)
+	);
+}
+
+void CPU::byte_op_mov_c_ptr_a()
+{
+	_mem->write(_primary.c, get_low_byte(_primary.a));
+	_mem->write(_primary.c + 1, get_high_byte(_primary.a));
 }
 
 void CPU::byte_op_swp()
@@ -450,45 +498,57 @@ void CPU::byte_op_swp()
 	std::swap(_primary, _shadow);
 }
 
-void CPU::byte_op_jp(const std::uint8_t op_code)
+void CPU::byte_op_jp()
 {
 	const auto b1 = instruction_fetch();
 	const auto b2 = instruction_fetch();
 	const auto addr = make_word(b1, b2);
-	switch (op_code) {
-		case 0x40: {
-			_ip = addr;
-		} break;
-		case 0x41: {
-			if (get_zero_flag()) _ip = addr;
-		} break;
-		case 0x42: {
-			if (get_carry_flag()) _ip = addr;
-		} break;
-		case 0x43: {
-			if (!get_zero_flag()) _ip = addr;
-		} break;
-		case 0x44: {
-			if (!get_carry_flag()) _ip = addr;
-		} break;
-		default: {
-			throw std::domain_error{"byte_op_jp() called with bad op code"};
-		} break;
-	}
+	_ip = addr;
 }
 
-void CPU::byte_op_call(const std::uint8_t op_code)
+void CPU::byte_op_jz()
 {
-	if (op_code == 0x48) {
-		const auto b1 = instruction_fetch();
-		const auto b2 = instruction_fetch();
-		const auto addr = make_word(b1, b2);
-		_ip = addr;
-	} else if (op_code == 0x49) {
-		_ip = _primary.a;
-	} else {
-		throw std::domain_error{"byte_op_call() called with bad op code"};
-	}
+	const auto b1 = instruction_fetch();
+	const auto b2 = instruction_fetch();
+	const auto addr = make_word(b1, b2);
+	if (get_zero_flag()) _ip = addr;
+}
+
+void CPU::byte_op_jc()
+{
+	const auto b1 = instruction_fetch();
+	const auto b2 = instruction_fetch();
+	const auto addr = make_word(b1, b2);
+	if (get_carry_flag()) _ip = addr;
+}
+
+void CPU::byte_op_jnz()
+{
+	const auto b1 = instruction_fetch();
+	const auto b2 = instruction_fetch();
+	const auto addr = make_word(b1, b2);
+	if (!get_zero_flag()) _ip = addr;
+}
+
+void CPU::byte_op_jnc()
+{
+	const auto b1 = instruction_fetch();
+	const auto b2 = instruction_fetch();
+	const auto addr = make_word(b1, b2);
+	if (!get_carry_flag()) _ip = addr;
+}
+
+void CPU::byte_op_call_n16()
+{
+	const auto b1 = instruction_fetch();
+	const auto b2 = instruction_fetch();
+	const auto addr = make_word(b1, b2);
+	_ip = addr;
+}
+
+void CPU::byte_op_call_a()
+{
+	_ip = _primary.a;
 }
 
 void CPU::byte_op_interrupt()
@@ -497,63 +557,62 @@ void CPU::byte_op_interrupt()
 	raise_interrupt(interrupt_code);
 }
 
-void CPU::byte_op_ret(const std::uint8_t op_code)
+void CPU::byte_op_ret()
 {
-	if (op_code == 0x4B) {
-		_ip = make_word(_mem->read(_primary.sp), _mem->read(_primary.sp + 1));
-		_primary.sp += 2;
-	} else if (op_code == 0x4C) {
-		if (_interrupt_level > 0) {
-			--_interrupt_level;
-		} else {
-			bad_parameter();
-		}
-		_ip = _shadow.a;
-	} else {
-		throw std::domain_error{"byte_op_ret() called with bad op code"};
-	}
+	_ip = make_word(_mem->read(_primary.sp), _mem->read(_primary.sp + 1));
+	_primary.sp += 2;
 }
 
-void CPU::byte_op_mode_change(const std::uint8_t op_code)
+void CPU::byte_op_reti()
 {
-	switch (op_code) {
-		case 0x50: {
-			_interrupt_handling = true;
-		} break;
-		case 0x51: {
-			_interrupt_handling = false;
-		} break;
-		case 0x52: {
-			_clock_interrupt = true;
-		} break;
-		case 0x53: {
-			_clock_interrupt = false;
-		} break;
-		case 0x54: {
-			// not implemented
-		} break;
-		case 0x55: {
-			// not implemented
-		} break;
-		default: {
-			throw std::domain_error{
-				"byte_op_mode_change() called with bad op code"
-			};
-		} break;
-	}
-}
-
-void CPU::byte_op_input_output(const std::uint8_t op_code)
-{
-	if (op_code == 0x60) {
-		char input_char;
-		_input->get(input_char);
-		_primary.a = make_word(input_char, get_high_byte(_primary.a));
-	} else if (op_code == 0x61) {
-		_output->put(get_low_byte(_primary.a));
+	_ip = _shadow.a;
+	if (_interrupt_level > 0) {
+		--_interrupt_level;
 	} else {
 		bad_parameter();
 	}
+}
+
+void CPU::byte_op_eih()
+{
+	_interrupt_handling = true;
+}
+
+void CPU::byte_op_dih()
+{
+	_interrupt_handling = false;
+}
+
+void CPU::byte_op_eci()
+{
+	_clock_interrupt = true;
+}
+
+void CPU::byte_op_dci()
+{
+	_clock_interrupt = false;
+}
+
+void CPU::byte_op_esi()
+{
+	// not implemented
+}
+
+void CPU::byte_op_dsi()
+{
+	// not implemented
+}
+
+void CPU::byte_op_in()
+{
+	char input_char;
+	_input->get(input_char);
+	_primary.a = make_word(input_char, get_high_byte(_primary.a));
+}
+
+void CPU::byte_op_out()
+{
+	_output->put(get_low_byte(_primary.a));
 }
 
 void CPU::byte_op_stop()
@@ -694,52 +753,140 @@ void CPU::step()
 		case 0x00:
 			byte_op_nop();
 			break;
-		case 0x01: case 0x02:
-			byte_op_add(op_code);
+		case 0x01:
+			byte_op_add_g8();
 			break;
-		case 0x03: case 0x04:
-			byte_op_sub(op_code);
+		case 0x02:
+			byte_op_add_r16();
 			break;
-		case 0x05: case 0x06:
-			byte_op_inc_dec(op_code);
+		case 0x03:
+			byte_op_sub_g8();
+			break;
+		case 0x04:
+			byte_op_sub_r16();
+			break;
+		case 0x05:
+			byte_op_inc();
+			break;
+		case 0x06:
+			byte_op_dec();
 			break;
 		case 0x07:
 			byte_op_neg();
 			break;
-		case 0x08: case 0x09: case 0x0A:
-			byte_op_bin(op_code);
+		case 0x08:
+			byte_op_and();
 			break;
-		case 0x0B: case 0x0C:
-			byte_op_shift(op_code);
+		case 0x09:
+			byte_op_or();
+			break;
+		case 0x0A:
+			byte_op_xor();
+			break;
+		case 0x0B:
+			byte_op_shift();
+			break;
+		case 0x0C:
+			byte_op_rotate();
 			break;
 		case 0x0D:
 			byte_op_mul();
 			break;
-		case 0x20: case 0x21: case 0x22: case 0x23: case 0x24: case 0x25:
-		case 0x26: case 0x29: case 0x2A: case 0x2B: case 0x2C: case 0x2D:
-		case 0x2E:
-			byte_op_mov(op_code);
+		case 0x20:
+			byte_op_mov_g8_g8();
+			break;
+		case 0x21:
+			byte_op_mov_r16_r16();
+			break;
+		case 0x22:
+			byte_op_mov_getmisc();
+			break;
+		case 0x23:
+			byte_op_mov_al_bp_ptr();
+			break;
+		case 0x24:
+			byte_op_mov_al_c_ptr();
+			break;
+		case 0x25:
+			byte_op_mov_bp_ptr_al();
+			break;
+		case 0x26:
+			byte_op_mov_c_ptr_al();
 			break;
 		case 0x28:
 			byte_op_swp();
 			break;
-		case 0x40: case 0x41: case 0x42: case 0x43: case 0x44:
-			byte_op_jp(op_code);
+		case 0x29:
+			byte_op_mov_a_bp_ptr();
 			break;
-		case 0x48: case 0x49:
-			byte_op_call(op_code);
+		case 0x2A:
+			byte_op_mov_a_c_ptr();
+			break;
+		case 0x2B:
+			byte_op_mov_al_t();
+			break;
+		case 0x2C:
+			byte_op_mov_t_al();
+			break;
+		case 0x2D:
+			byte_op_mov_bp_ptr_a();
+			break;
+		case 0x2E:
+			byte_op_mov_c_ptr_a();
+			break;
+		case 0x40:
+			byte_op_jp();
+			break;
+		case 0x41:
+			byte_op_jz();
+			break;
+		case 0x42:
+			byte_op_jc();
+			break;
+		case 0x43:
+			byte_op_jnz();
+			break;
+		case 0x44:
+			byte_op_jnc();
+			break;
+		case 0x48:
+			byte_op_call_n16();
+			break;
+		case 0x49:
+			byte_op_call_a();
 			break;
 		case 0x4A:
 			byte_op_interrupt();
 			break;
-		case 0x4B: case 0x4C:
-			byte_op_ret(op_code);
+		case 0x4B:
+			byte_op_ret();
 			break;
-		case 0x50: case 0x51: case 0x52: case 0x53: case 0x54: case 0x55:
-			byte_op_mode_change(op_code);
+		case 0x4C:
+			byte_op_reti();
 			break;
-		case 0x60: case 0x61:
-			byte_op_input_output(op_code);
+		case 0x50:
+			byte_op_eih();
+			break;
+		case 0x51:
+			byte_op_dih();
+			break;
+		case 0x52:
+			byte_op_eci();
+			break;
+		case 0x53:
+			byte_op_dci();
+			break;
+		case 0x54:
+			byte_op_esi();
+			break;
+		case 0x55:
+			byte_op_dsi();
+			break;
+		case 0x60:
+			byte_op_in();
+			break;
+		case 0x61:
+			byte_op_out();
 			break;
 		case 0x70:
 			byte_op_stop();
